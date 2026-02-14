@@ -83,7 +83,9 @@ export function format(
     // Se for longo, quebra linha
     const indentStr = INDENT.repeat(opts.depth);
     const nestedIndent = INDENT.repeat(opts.depth + 1);
-    return `[\n${items.map((i) => `${nestedIndent}${i}`).join(",\n")}\n${indentStr}]`;
+    return `[\n${
+      items.map((i) => `${nestedIndent}${i}`).join(",\n")
+    }\n${indentStr}]`;
   }
 
   // Tratamento de Datas
@@ -94,7 +96,9 @@ export function format(
   // Tratamento de Erros (Stack Trace simplificado)
   if (value instanceof Error) {
     const stack = value.stack?.split("\n")[1]?.trim() || "";
-    return `${ansi.vero.error(`${value.name}: ${value.message}`)}\n${ansi.dim(stack)}`;
+    return `${ansi.vero.error(`${value.name}: ${value.message}`)}\n${
+      ansi.dim(stack)
+    }`;
   }
 
   // Tratamento de Objetos Genéricos
