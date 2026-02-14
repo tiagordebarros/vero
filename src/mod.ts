@@ -1,7 +1,13 @@
 import * as ansi from "./ansi.ts";
 import { format } from "./formatter.ts";
 import { createTable } from "./table.ts";
-import { endTimer, startTimer } from "./bench.ts";
+import {
+  endTimer,
+  incrementCounter,
+  logTimer,
+  resetCounter,
+  startTimer,
+} from "./bench.ts";
 
 /**
  * Configurações globais do Logger
@@ -10,6 +16,11 @@ export interface LoggerConfig {
   showTimestamp: boolean;
   useIcons: boolean;
 }
+
+/**
+ * Nível de indentação para grupos
+ */
+let groupIndentLevel = 0;
 
 const defaultConfig: LoggerConfig = {
   showTimestamp: true,
@@ -58,15 +69,18 @@ class Vero {
     const badge = ansi.bold(colorFn(level.padEnd(2)));
     parts.push(badge);
 
-    // 3. Conteúdo
+    // 3. Indentação de grupo
+    const indent = "  ".repeat(groupIndentLevel);
+
+    // 4. Conteúdo
     // Se o argumento for string, imprime direto. Se for objeto, formata.
     const message = args
       .map((arg) => (typeof arg === "string" ? arg : format(arg)))
       .join(" ");
 
-    parts.push(message);
+    parts.push(indent + message);
 
-    // 4. Output
+    // 5. Output
     const finalLog = parts.join("  "); // Dois espaços de respiro
 
     if (stream === "stderr") {
@@ -144,6 +158,13 @@ class Vero {
       typeof arg === "string" ? ansi.vero.type(arg) : arg
     );
     this.print(icon, ansi.vero.type, coloredArgs);
+  }
+
+  /**
+   * Clear the console
+   */
+  clear() {
+    console.clear();
   }
 
   /**
@@ -296,10 +317,133 @@ class Vero {
     const title = ansi.dim(ansi.gray(text));
     console.log(`${icon} ${title}`);
   }
+
+  /**
+   * Logs the time elapsed since a timer was started, without ending it
+   */
+  timeLog(label: string, ...args: unknown[]) {
+    const visualization = logTimer(label);
+    if (!visualization) {
+      this.warn(`Timer '${label}' not found.`);
+      return;
+    }
+
+    const icon = this.config.useIcons ? "⏱" : "TIME";
+    const extraMessage = args.length > 0
+      ? " " + args.map((arg) => (typeof arg === "string" ? arg : format(arg)))
+        .join(" ")
+      : "";
+    console.log(`${getTimestamp()}  ${icon}   ${visualization}${extraMessage}`);
+  }
+
+  /**
+   * Assertion logging - only logs if condition is false
+   */
+  assert(condition: boolean, ...args: unknown[]) {
+    if (!condition) {
+      const icon = this.config.useIcons ? "✖" : "ASSERT";
+      const message = args.length > 0 ? args : ["Assertion failed"];
+      const coloredArgs = message.map((arg) =>
+        typeof arg === "string" ? ansi.vero.error(arg) : arg
+      );
+      this.print(icon, ansi.vero.error, coloredArgs, "stderr");
+
+      // Get stack trace for assertion
+      const stack = new Error().stack;
+      if (stack) {
+        const lines = stack.split("\n").slice(2).map((lines) => lines.trim()); // Remove Error and assert call
+        console.error(ansi.dim(ansi.gray(lines.join("\n"))));
+      }
+    }
+  }
+
+  /**
+   * Increments and logs a counter
+   */
+  count(label = "default") {
+    const count = incrementCounter(label);
+    const icon = this.config.useIcons ? "🔢" : "COUNT";
+    const message = `${label}: ${count}`;
+    this.print(icon, ansi.vero.info, [message]);
+  }
+
+  /**
+   * Resets a counter to zero
+   */
+  countReset(label = "default") {
+    resetCounter(label);
+    const icon = this.config.useIcons ? "↺" : "RESET";
+    const message = `${label}: reset`;
+    this.print(icon, ansi.dim, [ansi.gray(message)]);
+  }
+
+  /**
+   * Creates a new inline group - increases indentation level
+   */
+  group(...args: unknown[]) {
+    const icon = this.config.useIcons ? "▼" : "GROUP";
+    const message = args.length > 0 ? args : ["Group"];
+    this.print(icon, ansi.vero.info, message);
+    groupIndentLevel++;
+  }
+
+  /**
+   * Creates a new collapsed group (same as group for terminal)
+   */
+  groupCollapsed(...args: unknown[]) {
+    const icon = this.config.useIcons ? "▶" : "GROUP";
+    const message = args.length > 0 ? args : ["Group"];
+    this.print(icon, ansi.dim, message.map((m) => ansi.gray(String(m))));
+    groupIndentLevel++;
+  }
+
+  /**
+   * Exits the current inline group - decreases indentation level
+   */
+  groupEnd() {
+    if (groupIndentLevel > 0) {
+      groupIndentLevel--;
+    }
+  }
+
+  /**
+   * Displays an interactive listing of object properties
+   */
+  dir(obj: unknown, options?: { depth?: number; colors?: boolean }) {
+    const icon = this.config.useIcons ? "📋" : "DIR";
+    const depth = options?.depth ?? 10;
+    const formatted = format(obj, { maxDepth: depth });
+    this.print(icon, ansi.vero.type, [formatted]);
+  }
+
+  /**
+   * Displays an XML/HTML element representation (for terminal, same as dir)
+   */
+  dirxml(obj: unknown) {
+    const icon = this.config.useIcons ? "📄" : "XML";
+    const formatted = format(obj);
+    this.print(icon, ansi.vero.type, [formatted]);
+  }
+
+  /**
+   * Outputs a stack trace to the console
+   */
+  trace(...args: unknown[]) {
+    const icon = this.config.useIcons ? "🔍" : "TRACE";
+    const message = args.length > 0 ? args : ["Trace"];
+    this.print(icon, ansi.vero.warn, message);
+
+    // Get and display stack trace
+    const stack = new Error().stack;
+    if (stack) {
+      const lines = stack.split("\n").slice(2).map((line) => line.trim()); // Remove Error and trace call
+      console.log(ansi.dim(ansi.gray(lines.join("\n"))));
+    }
+  }
 }
 
 // Exporta uma instância padrão pronta para uso
-export const logger = new Vero();
+export const logger: Vero = new Vero();
 
 // Exporta a classe para quem quiser instâncias customizadas
 export { Vero };
