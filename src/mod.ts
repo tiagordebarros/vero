@@ -8,6 +8,7 @@ import {
   resetCounter,
   startTimer,
 } from "./bench.ts";
+import { getTerminalWidth } from "./terminal.ts";
 
 /**
  * Configurações globais do Logger
@@ -171,12 +172,42 @@ class Vero {
    * Um separador visual elegante
    */
   hr() {
-    const width = 80; // Largura padrão
-    console.log(ansi.dim(ansi.gray("─".repeat(width))));
+    const width = getTerminalWidth();
+    const line = "─".repeat(width);
+    // Apply ANSI codes AFTER creating the string to avoid counting them in width
+    console.log(ansi.dim(ansi.gray(line)));
   }
 
   /**
-   * Renderiza uma tabela ASCII inteligente
+   * Renderiza uma tabela ASCII inteligente e responsiva
+   * 
+   * Automatically switches between two rendering modes:
+   * - **Table Mode** (≤6 columns): Traditional ASCII table with optional truncation
+   * - **Card View** (>6 columns or narrow terminal): Vertical cards for better readability
+   * 
+   * @param data Array of objects to render
+   * 
+   * @example
+   * // Small table (table mode)
+   * logger.table([
+   *   { id: 1, name: "Alice", active: true },
+   *   { id: 2, name: "Bob", active: false }
+   * ]);
+   * 
+   * @example
+   * // Wide table with many columns (automatic card view)
+   * logger.table([
+   *   {
+   *     id: 1,
+   *     name: "Alice Johnson",
+   *     email: "alice@example.com",
+   *     department: "Engineering",
+   *     role: "Senior Engineer",
+   *     location: "San Francisco",
+   *     joined: "2021-03-15",
+   *     active: true
+   *   }
+   * ]);
    */
   table(data: any[]) {
     // Se não for array, usa o log normal
@@ -186,7 +217,6 @@ class Vero {
       return;
     }
 
-    // Título opcional ou apenas renderiza
     console.log(createTable(data));
   }
 
