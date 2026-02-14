@@ -6,17 +6,21 @@
 
 📸 Demo (O Momento "Uau")
 
-(TODO: Inserir um GIF animado ou um Screenshot do terminal mostrando a Tabela Colorida e o Benchmark.).
-Snippet de código
+(TODO: Inserir um GIF animado ou um Screenshot do terminal mostrando a Tabela
+Colorida e o Benchmark.). Snippet de código
 
-[IMAGEM: Screenshot do terminal com fundo escuro, mostrando uma tabela Vero colorida em tons pastéis e uma barra de progresso]
+[IMAGEM: Screenshot do terminal com fundo escuro, mostrando uma tabela Vero
+colorida em tons pastéis e uma barra de progresso]
 
 ⚡ O Problema
 
-O console.log padrão é ruidoso, difícil de ler e feio. Bibliotecas existentes (Winston, Pino) são focadas em arquivos de log para servidores, pesadas e complexas de configurar para o dia a dia do desenvolvimento.
+O console.log padrão é ruidoso, difícil de ler e feio. Bibliotecas existentes
+(Winston, Pino) são focadas em arquivos de log para servidores, pesadas e
+complexas de configurar para o dia a dia do desenvolvimento.
 
-O Vero muda isso. Ele não é um logger de produção; é uma ferramenta de Developer Experience (DX) para iluminar o seu fluxo de trabalho.
-✨ Diferenciais (Filosofia "Zero")
+O Vero muda isso. Ele não é um logger de produção; é uma ferramenta de Developer
+Experience (DX) para iluminar o seu fluxo de trabalho. ✨ Diferenciais
+(Filosofia "Zero")
 
     Zero Dependências: 100% TypeScript nativo. Sem node_modules pesados.
 
@@ -30,54 +34,46 @@ O Vero muda isso. Ele não é um logger de produção; é uma ferramenta de Deve
 
 🛠️ Instalação
 
-Disponível no JSR (JavaScript Registry):
-Bash
+Disponível no JSR (JavaScript Registry): Bash
 
 # Deno
+
 deno add @seu-user/vero
 
 # Node.js (via npx)
+
 npx jsr add @seu-user/vero
 
 # Bun
+
 bunx jsr add @seu-user/vero
 
-🚀 Uso Rápido
-TypeScript
+🚀 Uso Rápido TypeScript
 
 import { logger } from "@seu-user/vero";
 
-// 1. Logs Bonitos
-logger.info("Iniciando microserviço de pagamentos...");
+// 1. Logs Bonitos logger.info("Iniciando microserviço de pagamentos...");
 logger.warn("Atenção: Cache não inicializado.");
 
-// 2. Objetos Complexos (Formatados automaticamente)
-const user = { 
-  id: 1, 
-  name: "Dev Hackathon", 
-  roles: ["admin", "editor"],
-  meta: { active: true, login: new Date() } 
-};
-logger.debug(user);
+// 2. Objetos Complexos (Formatados automaticamente) const user = { id: 1, name:
+"Dev Hackathon", roles: ["admin", "editor"], meta: { active: true, login: new
+Date() } }; logger.debug(user);
 
-// 3. Tabelas Inteligentes
-const metrics = [
-  { endpoint: "/api/v1", latency: "12ms", status: 200 },
-  { endpoint: "/api/auth", latency: "450ms", status: 500 },
-];
-logger.table(metrics);
+// 3. Tabelas Inteligentes const metrics = [ { endpoint: "/api/v1", latency:
+"12ms", status: 200 }, { endpoint: "/api/auth", latency: "450ms", status: 500 },
+]; logger.table(metrics);
 
-// 4. Benchmark Visual
-logger.time("DbQuery");
-await database.connect();
+// 4. Benchmark Visual logger.time("DbQuery"); await database.connect();
 logger.timeEnd("DbQuery"); // Saída: ⏱ DbQuery ■■■■■···· 450ms
 
 🤖 A Jornada com GitHub Copilot CLI
 
-Este projeto foi construído durante o GitHub Copilot CLI Hackathon 2026. O objetivo era testar os limites da geração de código nativo sem dependências externas.
-Como o Copilot CLI acelerou o Vero:
+Este projeto foi construído durante o GitHub Copilot CLI Hackathon 2026. O
+objetivo era testar os limites da geração de código nativo sem dependências
+externas. Como o Copilot CLI acelerou o Vero:
 
-O diferencial deste projeto foi utilizar o CLI para resolver algoritmos complexos de manipulação de string e visualização.
+O diferencial deste projeto foi utilizar o CLI para resolver algoritmos
+complexos de manipulação de string e visualização.
 
     Desafio 1: Cores ANSI Manuais (Sem Chalk) Prompt: gh copilot suggest "Generate a TypeScript function to convert Hex color to ANSI TrueColor escape sequence without libraries" Resultado: O Copilot gerou a lógica de bitwise operations para separar os canais RGB, economizando horas de pesquisa sobre especificações de terminal.
 
@@ -85,15 +81,12 @@ O diferencial deste projeto foi utilizar o CLI para resolver algoritmos complexo
 
     Desafio 3: Detecção de Referência Circular Prompt: gh copilot explain "How to safely stringify a circular object in JavaScript using WeakSet" Resultado: A explicação ajudou a implementar o formatter.ts robusto que evita estouro de pilha.
 
-📂 Estrutura do Projeto
-Plaintext
+📂 Estrutura do Projeto Plaintext
 
-src/
-├── ansi.ts       # Motor de cores TrueColor (Zero Deps)
-├── bench.ts      # Visualizador de performance
-├── formatter.ts  # Recursão inteligente e colorização de tipos
-├── table.ts      # Motor de renderização de tabelas ASCII
-└── mod.ts        # Ponto de entrada (Public API)
+src/ ├── ansi.ts # Motor de cores TrueColor (Zero Deps) ├── bench.ts #
+Visualizador de performance ├── formatter.ts # Recursão inteligente e
+colorização de tipos ├── table.ts # Motor de renderização de tabelas ASCII └──
+mod.ts # Ponto de entrada (Public API)
 
 📜 Licença
 
