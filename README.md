@@ -1,5 +1,7 @@
 🔮 Vero (Visual Debugger)
 
+[![ORCID](https://img.shields.io/badge/ORCID-0000--0001--6823--3562-A6CE39?logo=orcid&logoColor=white)](https://orcid.org/0000-0001-6823-3562)
+
     "console.log, mas com alma." O debugger visual universal, zero-dependências e focado em estética para Deno, Node.js e Bun.
 
 📸 Demo (O Momento "Uau")
