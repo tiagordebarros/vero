@@ -3,6 +3,9 @@ import * as ansi from "./ansi.ts";
 // Armazém global para os timers
 const timers = new Map<string, number>();
 
+// Armazém global para os contadores
+const counters = new Map<string, number>();
+
 // Configuração visual
 const BAR_WIDTH = 20; // Largura da barra em caracteres
 const CHAR_FILL = "■";
@@ -30,6 +33,36 @@ export function endTimer(label: string): string | null {
 }
 
 /**
+ * Retorna o tempo intermediário sem finalizar o cronómetro
+ */
+export function logTimer(label: string): string | null {
+  const startTime = timers.get(label);
+  if (startTime === undefined) return null;
+
+  const currentTime = performance.now();
+  const duration = currentTime - startTime;
+
+  return renderBar(label, duration);
+}
+
+/**
+ * Incrementa um contador
+ */
+export function incrementCounter(label: string): number {
+  const current = counters.get(label) || 0;
+  const next = current + 1;
+  counters.set(label, next);
+  return next;
+}
+
+/**
+ * Reseta um contador
+ */
+export function resetCounter(label: string): void {
+  counters.delete(label);
+}
+
+/**
  * Desenha a barra de performance baseada num "budget" (orçamento) de tempo.
  * Assumimos que 500ms é o "máximo aceitável" para uma operação síncrona visual.
  */
@@ -54,5 +87,7 @@ function renderBar(label: string, ms: number): string {
   const timeStr = ms < 10 ? ms.toFixed(3) : ms.toFixed(1);
 
   // Layout: [ LABEL ] [ BARRA ] TEMPO ms
-  return `${ansi.bold(ansi.white(label.padEnd(15)))} ${filled}${empty} ${colorFn(timeStr + "ms")}`;
+  return `${ansi.bold(ansi.white(label.padEnd(15)))} ${filled}${empty} ${
+    colorFn(timeStr + "ms")
+  }`;
 }
