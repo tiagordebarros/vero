@@ -15,7 +15,7 @@ const traceExample = () => {
 
 console.clear(); // TODO: create new Vero method to clear console with style
 logger.hr();
-logger.log("Starting demo of native console methods...");
+logger.h1("Starting demo of all Vero methods...");
 logger.log("Log example");
 logger.info("Info example");
 logger.warn("Warning example");
@@ -45,5 +45,5 @@ console.groupEnd();
 console.dir({ name: "Charlie", age: 35 });
 console.dirxml({ id: 1, name: "Valid example", type: "dirxml" });
 console.trace(traceExample);
-logger.log("End of all console methods demo");
+logger.log("End of all Vero methods demo");
 logger.hr();

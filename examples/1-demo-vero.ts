@@ -59,6 +59,16 @@ logger.success("Servidor HTTP rodando na porta 8080");
 logger.success("Pronto para aceitar conexões 🚀");
 
 logger.hr();
+
+// Demonstração de Títulos (h1-h6)
+logger.h1("Main System Dashboard");
+logger.h2("Server Configuration");
+logger.h3("Network Settings");
+logger.h4("Advanced Options");
+logger.h5("Debug Information");
+logger.h6("Internal Logs");
+
+logger.hr();
 logger.info("Analisando performance dos endpoints...");
 
 // Dados mockados perfeitos para tabela

@@ -1,12 +1,18 @@
 import { logger } from "../src/mod.ts";
 
+const randomBoolean = Boolean(Math.floor(Math.random() * 2));
+
 logger.hr();
 logger.info("Iniciando Smoke Test de Infraestrutura 🏗️");
 logger.hr();
 
 const services = [
   { name: "User Service", url: "http://api.users", simulateFail: false },
-  { name: "Payment Service", url: "http://api.payments", simulateFail: true },
+  {
+    name: "Payment Service",
+    url: "http://api.payments",
+    simulateFail: randomBoolean,
+  },
   { name: "Notif Service", url: "http://api.notifs", simulateFail: false },
 ];
 
@@ -39,7 +45,7 @@ for (const service of services) {
   });
 
   // Um pequeno espaço para respirar entre testes
-  console.log("");
+  console.log(""); // TODO: criar logger.br() para realziar essa função
 }
 
 logger.hr();

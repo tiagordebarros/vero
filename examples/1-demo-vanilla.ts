@@ -54,6 +54,16 @@ console.log("Servidor HTTP rodando na porta 8080");
 console.log("Pronto para aceitar conexões 🚀");
 
 console.log("------------------------------------------------------------");
+
+// Demonstração de Títulos (equivalente a h1-h6, mas sem estilo)
+console.log("Main System Dashboard");
+console.log("Server Configuration");
+console.log("Network Settings");
+console.log("Advanced Options");
+console.log("Debug Information");
+console.log("Internal Logs");
+
+console.log("------------------------------------------------------------");
 console.log("Analisando performance dos endpoints...");
 
 // Tabela
