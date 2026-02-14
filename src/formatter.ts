@@ -31,16 +31,18 @@ export function format(
   if (value === undefined) return ansi.dim(ansi.gray("undefined"));
 
   if (typeof value === "boolean") {
-    return value ? ansi.vero.warn("true") : ansi.vero.error("false");
+    // Booleans use yellow (true) and red (false) for clear distinction from strings
+    return value ? ansi.yellow("true") : ansi.red("false");
   }
 
   if (typeof value === "number") {
-    return ansi.vero.warn(String(value));
+    // Numbers use Amber (peach orange) for clear distinction from strings
+    return ansi.hex("#f59e0b")(String(value));
   }
 
   if (typeof value === "string") {
-    // Strings ganham aspas e cor verde menta
-    return ansi.vero.success(`"${value}"`);
+    // Strings use basic green (distinct from success mint green)
+    return ansi.green(`"${value}"`);
   }
 
   if (typeof value === "symbol") {
