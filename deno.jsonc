@@ -1,6 +1,6 @@
 {
     "name": "@tiagordebarros/vero",
-    "description": "A simple and beautiful debugging",
+    "description": "Beautiful and simple visual debugger.",
     "author": "Tiago Ribeiro de Barros <tiago@parceirosdenegocio.com>",
     "version": "0.1.0",
     "license": "MIT",
