@@ -1,0 +1,18 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: "Vero: beautiful and simple visual debugger."
+authors:
+  - family-names: "Ribeiro de Barros"
+    given-names: "Tiago"
+    orcid: "[https://orcid.org/0000-0001-6823-3562](https://orcid.org/0000-0001-6823-3562)"
+    email: "tiago@parceirosdenegocio.com"
+date-released: 2026-02-15
+version: "0.1.0"
+repository-code: "[https://github.com/tiagordebarros/vero](https://github.com/tiagordebarros/vero)"
+license: MIT
+keywords:
+  - debugging
+  - developer-experience
+  - logging
+  - typescript
+  - javascript
