@@ -55,7 +55,7 @@ class Vero {
 
     // 2. Badge de Nível (Ex: INFO )
     // Usamos padEnd(7) para alinhar verticalmente todos os logs
-    const badge = ansi.bold(colorFn(level.padEnd(5)));
+    const badge = ansi.bold(colorFn(level.padEnd(2)));
     parts.push(badge);
 
     // 3. Conteúdo
@@ -80,7 +80,8 @@ class Vero {
    * Log Genérico (Cinza/Padrão)
    */
   log(...args: unknown[]) {
-    this.print("LOG", ansi.gray, args);
+    const icon = this.config.useIcons ? "•" : "LOG";
+    this.print(icon, ansi.gray, args);
   }
 
   /**
@@ -88,7 +89,11 @@ class Vero {
    */
   info(...args: unknown[]) {
     const icon = this.config.useIcons ? "ℹ" : "INFO";
-    this.print(icon, ansi.vero.info, args);
+    // Apply info color to the text content
+    const coloredArgs = args.map((arg) =>
+      typeof arg === "string" ? ansi.vero.info(arg) : arg
+    );
+    this.print(icon, ansi.vero.info, coloredArgs);
   }
 
   /**
@@ -96,7 +101,11 @@ class Vero {
    */
   success(...args: unknown[]) {
     const icon = this.config.useIcons ? "✔" : "OK";
-    this.print(icon, ansi.vero.success, args);
+    // Apply success color to the text content
+    const coloredArgs = args.map((arg) =>
+      typeof arg === "string" ? ansi.vero.success(arg) : arg
+    );
+    this.print(icon, ansi.vero.success, coloredArgs);
   }
 
   /**
@@ -104,7 +113,11 @@ class Vero {
    */
   warn(...args: unknown[]) {
     const icon = this.config.useIcons ? "⚠" : "WARN";
-    this.print(icon, ansi.vero.warn, args);
+    // Apply warn color to the text content
+    const coloredArgs = args.map((arg) =>
+      typeof arg === "string" ? ansi.vero.warn(arg) : arg
+    );
+    this.print(icon, ansi.vero.warn, coloredArgs);
   }
 
   /**
@@ -112,8 +125,12 @@ class Vero {
    * Usa stderr para que ferramentas de CI/CD detectem falhas.
    */
   error(...args: unknown[]) {
+    // Apply error color to the text content
+    const coloredArgs = args.map((arg) =>
+      typeof arg === "string" ? ansi.vero.error(arg) : arg
+    );
     const icon = this.config.useIcons ? "✖" : "ERR";
-    this.print(icon, ansi.vero.error, args, "stderr");
+    this.print(icon, ansi.vero.error, coloredArgs, "stderr");
   }
 
   /**
@@ -122,14 +139,18 @@ class Vero {
    */
   debug(...args: unknown[]) {
     const icon = this.config.useIcons ? "⚙" : "DBG";
-    this.print(icon, ansi.vero.type, args);
+    // Apply debug (type) color to the text content
+    const coloredArgs = args.map((arg) =>
+      typeof arg === "string" ? ansi.vero.type(arg) : arg
+    );
+    this.print(icon, ansi.vero.type, coloredArgs);
   }
 
   /**
    * Um separador visual elegante
    */
   hr() {
-    const width = 60; // Largura padrão
+    const width = 80; // Largura padrão
     console.log(ansi.dim(ansi.gray("─".repeat(width))));
   }
 
@@ -212,6 +233,68 @@ class Vero {
     );
 
     this.hr();
+  }
+
+  /**
+   * Heading Level 1 - Maximum emphasis
+   * Large visual size with wide spacing + single large icon
+   */
+  h1(text: string) {
+    const icon = "◆"; // Single large diamond
+    const title = ansi.bold(ansi.hex("#8b5cf6")(text)); // Amethyst
+    console.log(ansi.hex("#8b5cf6")("═".repeat(text.length + 6)));
+    console.log(`${icon}  ${title}  ${icon}`);
+    console.log(ansi.hex("#8b5cf6")("═".repeat(text.length + 6)));
+  }
+
+  /**
+   * Heading Level 2 - Strong emphasis
+   * Medium-large visual size with moderate spacing
+   */
+  h2(text: string) {
+    const icon = "▸"; // Triangle
+    const title = ansi.bold(ansi.hex("#10b981")(text)); // Emerald
+    console.log(`\n${icon} ${title}`);
+  }
+
+  /**
+   * Heading Level 3 - Moderate emphasis
+   * Normal size with bold
+   */
+  h3(text: string) {
+    const icon = "▸"; // Triangle
+    const title = ansi.bold(ansi.hex("#3b82f6")(text)); // Sapphire
+    console.log(`${icon} ${title}`);
+  }
+
+  /**
+   * Heading Level 4 - Light emphasis
+   * Normal size without bold
+   */
+  h4(text: string) {
+    const icon = "▹"; // Outline triangle
+    const title = ansi.hex("#f59e0b")(text); // Amber
+    console.log(`${icon} ${title}`);
+  }
+
+  /**
+   * Heading Level 5 - Minimal emphasis
+   * Smaller visual appearance with cyan
+   */
+  h5(text: string) {
+    const icon = "•"; // Bullet
+    const title = ansi.cyan(text);
+    console.log(`${icon} ${title}`);
+  }
+
+  /**
+   * Heading Level 6 - Subtle emphasis
+   * Smallest visual with dim gray + subtle dot
+   */
+  h6(text: string) {
+    const icon = "·"; // Tiny dot
+    const title = ansi.dim(ansi.gray(text));
+    console.log(`${icon} ${title}`);
   }
 }
 
