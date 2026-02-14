@@ -1,5 +1,6 @@
 import * as ansi from "./ansi.ts";
 import type { format } from "./formatter.ts";
+import { getTerminalWidth } from "./terminal.ts";
 
 // Configuração visual da tabela (Bordas Unicode Arredondadas/Suaves)
 const CHARS = {
@@ -10,7 +11,64 @@ const CHARS = {
 };
 
 /**
+ * Renderiza um card vertical para um registro
+ */
+function createCard(row: any, index: number, terminalWidth: number): string {
+  const lines: string[] = [];
+  const cardWidth = Math.min(terminalWidth - 4, 60); // Máximo 60 colunas para cards
+  const contentWidth = cardWidth - 2; // Espaço interno (sem bordas)
+
+  // Título do card
+  const title = ` Registro #${index + 1} `;
+  const titleLine = "─".repeat(Math.max(0, cardWidth - title.length));
+  lines.push(ansi.gray(`${CHARS.top.left}${title}${titleLine}${CHARS.top.right}`));
+
+  // Propriedades
+  const entries = Object.entries(row);
+  entries.forEach(([key, val]) => {
+    // Formatar valor
+    let valueStr: string;
+    if (typeof val === "object" && val !== null) {
+      valueStr = "[Obj]";
+    } else if (val === undefined) {
+      valueStr = "-";
+    } else {
+      valueStr = String(val);
+    }
+
+    // Colorir baseado no tipo
+    let coloredValue: string;
+    if (typeof val === "number") {
+      coloredValue = ansi.vero.warn(valueStr);
+    } else if (typeof val === "boolean") {
+      coloredValue = val ? ansi.vero.success(valueStr) : ansi.vero.error(valueStr);
+    } else if (val === null || val === undefined) {
+      coloredValue = ansi.dim(valueStr);
+    } else {
+      coloredValue = ansi.vero.info(valueStr);
+    }
+
+    // Montar linha: "│ key: value │"
+    const keyPart = ansi.bold(ansi.white(key));
+    const separator = ansi.dim(": ");
+    const display = `${keyPart}${separator}${coloredValue}`;
+    
+    // Calcular padding (precisa remover códigos ANSI do cálculo)
+    const cleanLength = key.length + 2 + valueStr.length; // key + ": " + value
+    const padding = " ".repeat(Math.max(0, contentWidth - cleanLength));
+    
+    lines.push(`${ansi.gray(CHARS.vertical)} ${display}${padding} ${ansi.gray(CHARS.vertical)}`);
+  });
+
+  // Base
+  lines.push(ansi.gray(`${CHARS.bottom.left}${"─".repeat(cardWidth)}${CHARS.bottom.right}`));
+
+  return lines.join("\n");
+}
+
+/**
  * Cria uma tabela ASCII bonita e responsiva
+ * Se não couber no terminal, renderiza como cards verticais
  */
 export function createTable(data: any[]): string {
   if (!data || data.length === 0) {
@@ -26,26 +84,57 @@ export function createTable(data: any[]): string {
   const headers = Array.from(new Set(rows.flatMap((r) => Object.keys(r))));
 
   // 3. Matriz de Dados (Stringificada)
-  // Pré-calculamos os valores formatados para medir o tamanho depois
   const stringMatrix = rows.map((row) => {
     return headers.map((header) => {
       const val = (row as any)[header];
-      // Usamos uma versão simplificada do formatador para caber na célula
       if (typeof val === "object" && val !== null) return "[Obj]";
       if (val === undefined) return "-";
       return String(val);
     });
   });
 
-  // 4. Calcular Largura das Colunas
+  // 4. Calcular Largura das Colunas e verificar se cabe no terminal
+  const terminalWidth = getTerminalWidth();
+  const maxTableWidth = terminalWidth - 2;
+
   const colWidths = headers.map((header, i) => {
-    let max = header.length; // Começa com o tamanho do título
+    let max = header.length;
     stringMatrix.forEach((row) => {
       const len = row[i].length;
       if (len > max) max = len;
     });
-    return max + 2; // +2 para padding (um espaço de cada lado)
+    return max + 2; // +2 para padding
   });
+
+  const totalWidth = colWidths.reduce((sum, w) => sum + w, 0) + (headers.length + 1);
+  
+  // 4.1 Decidir entre MODO TABELA vs MODO CARD
+  // Usar card view se:
+  // a) Muitas colunas (>6) tornam a tabela ilegível
+  // b) Tabela muito larga e precisaria de truncamento agressivo
+  const MIN_READABLE_COL_WIDTH = 10;
+  const TOO_MANY_COLUMNS = headers.length > 6;
+  
+  const wouldNeedHeavyTruncation = totalWidth > maxTableWidth && colWidths.some(w => {
+    const scaled = Math.floor(w * (maxTableWidth / totalWidth));
+    return scaled < MIN_READABLE_COL_WIDTH;
+  });
+
+  if (TOO_MANY_COLUMNS || wouldNeedHeavyTruncation) {
+    // MODO CARD: Renderizar cada linha como um card vertical
+    return rows.map((row, i) => createCard(row, i, terminalWidth)).join("\n");
+  }
+
+  // 4.2 MODO TABELA: Ajustar larguras se ainda couber com truncamento
+  if (totalWidth > maxTableWidth) {
+    const MIN_COL_WIDTH = 8;
+    const availableWidth = maxTableWidth - (headers.length + 1);
+    const scaleFactor = availableWidth / colWidths.reduce((s, w) => s + w, 0);
+
+    for (let i = 0; i < colWidths.length; i++) {
+      colWidths[i] = Math.max(MIN_COL_WIDTH, Math.floor(colWidths[i] * scaleFactor));
+    }
+  }
 
   // 5. Funções de Desenho de Linhas
   const drawLine = (type: "top" | "middle" | "bottom") => {
@@ -56,11 +145,18 @@ export function createTable(data: any[]): string {
 
   const drawRow = (cells: string[], colorFn?: (s: string) => string) => {
     const content = cells.map((cell, i) => {
-      const pad = colWidths[i] - cell.length;
-      // Estratégia de alinhamento: Números à direita, Texto à esquerda
-      // (Simplificado aqui para tudo à esquerda com padding no final)
+      // Truncar célula se for muito larga para a coluna
+      let displayCell = cell;
+      const maxCellWidth = colWidths[i] - 2; // -2 para padding
+      
+      if (cell.length > maxCellWidth) {
+        // Truncar com "…" (ellipsis)
+        displayCell = cell.substring(0, maxCellWidth - 1) + "…";
+      }
+      
+      const pad = colWidths[i] - displayCell.length;
       const padding = " ".repeat(pad - 1);
-      const cleanCell = ` ${cell}${padding}`;
+      const cleanCell = ` ${displayCell}${padding}`;
       return colorFn ? colorFn(cleanCell) : cleanCell;
     });
     return `${CHARS.vertical}${content.join(CHARS.vertical)}${CHARS.vertical}`;
@@ -103,9 +199,32 @@ export function createTable(data: any[]): string {
       .map((cellColorized, idx) => {
         // Recalcular padding porque os códigos ANSI não contam para largura visual,
         // mas o stringMatrix[i][idx] tem o tamanho "limpo".
-        const cleanLen = stringMatrix[i][idx].length;
+        let cleanLen = stringMatrix[i][idx].length;
+        let displayCell = cellColorized;
+        const maxCellWidth = colWidths[idx] - 2; // -2 para padding
+        
+        // Truncar se necessário
+        if (cleanLen > maxCellWidth) {
+          // Extrair apenas o texto limpo e truncar
+          const cleanText = stringMatrix[i][idx];
+          const truncated = cleanText.substring(0, maxCellWidth - 1) + "…";
+          
+          // Re-aplicar a cor ao texto truncado
+          const originalVal = (rows[i] as any)[headers[idx]];
+          if (typeof originalVal === "number") displayCell = ansi.vero.warn(truncated);
+          else if (typeof originalVal === "boolean") {
+            displayCell = originalVal ? ansi.vero.success(truncated) : ansi.vero.error(truncated);
+          } else if (originalVal === null || originalVal === undefined) {
+            displayCell = ansi.dim(truncated);
+          } else {
+            displayCell = ansi.vero.info(truncated);
+          }
+          
+          cleanLen = truncated.length;
+        }
+        
         const pad = colWidths[idx] - cleanLen;
-        return ` ${cellColorized}${" ".repeat(pad - 1)}`;
+        return ` ${displayCell}${" ".repeat(pad - 1)}`;
       })
       .join(ansi.gray(CHARS.vertical));
 
