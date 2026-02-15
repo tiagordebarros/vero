@@ -1,41 +1,69 @@
 /**
- * Terminal size detection utilities
- * Isomorphic implementation for Browser and Server environments
+ * Terminal size detection utilities.
+ *
+ * Isomorphic implementation for detecting viewport/terminal dimensions
+ * across Browser and Server (Deno/Node/Bun) environments.
+ *
+ * @module
  */
 
-import { getBrowserWindow, getDenoNamespace, getProcessNamespace, isBrowser } from "./env.ts";
-import { DEFAULT_TERMINAL_HEIGHT, DEFAULT_TERMINAL_WIDTH } from "../constants/defaults.ts";
+import {
+  getBrowserWindow,
+  getDenoNamespace,
+  getProcessNamespace,
+  isBrowser,
+} from "./env.ts";
+import {
+  DEFAULT_TERMINAL_HEIGHT,
+  DEFAULT_TERMINAL_WIDTH,
+} from "../constants/defaults.ts";
 
 /**
- * Gets the current terminal/viewport width using the most reliable method available
- * Priority order:
- * 1. process.stdout.columns (Node/Bun - most accurate, updates with SIGWINCH)
- * 2. Deno.consoleSize() (Deno - static but reliable)
- * 3. COLUMNS environment variable (manual override)
- * 4. window.innerWidth (Browser)
- * 5. Fallback to 80
+ * Gets the current terminal or viewport width in characters.
  *
- * @returns Terminal width in characters (default: 80)
+ * Uses a priority-based detection strategy:
+ * 1. **Node/Bun**: `process.stdout.columns` (most accurate, updates with SIGWINCH)
+ * 2. **Deno**: `Deno.consoleSize().columns` (static but reliable)
+ * 3. **Environment Variable**: `COLUMNS` (manual override)
+ * 4. **Browser**: `window.innerWidth / 9` (approximate character width)
+ * 5. **Fallback**: 80 characters (standard terminal width)
+ *
+ * @returns {number} Terminal width in characters (default: 80).
+ *
+ * @example
+ * ```ts
+ * const width = getTerminalWidth();
+ * console.log(width); // 120
+ * ```
+ *
+ * @example
+ * ```ts
+ * // Responsive table rendering
+ * if (getTerminalWidth() < 60) {
+ *   renderCardView();
+ * } else {
+ *   renderTableView();
+ * }
+ * ```
  */
 export function getTerminalWidth(): number {
   try {
-    // Browser environment - approximate character width
     if (isBrowser()) {
       const win = getBrowserWindow();
       if (win) {
-        // Approximate: 1 character ≈ 8-9px in monospace fonts
         const approxWidth = Math.floor(win.innerWidth / 9);
-        return Math.max(40, Math.min(approxWidth, 200)); // Clamp between 40-200
+        return Math.max(40, Math.min(approxWidth, 200));
       }
     }
 
-    // Node.js/Bun environment - PRIORITY 1 (updates with SIGWINCH)
     const proc = getProcessNamespace();
-    if (proc && proc.stdout && typeof proc.stdout.columns === "number" && proc.stdout.columns > 0) {
+    if (
+      proc && proc.stdout && typeof proc.stdout.columns === "number" &&
+      proc.stdout.columns > 0
+    ) {
       return proc.stdout.columns;
     }
 
-    // Deno environment - PRIORITY 2
     const deno = getDenoNamespace();
     if (deno && deno.consoleSize) {
       const size = deno.consoleSize();
@@ -44,7 +72,6 @@ export function getTerminalWidth(): number {
       }
     }
 
-    // COLUMNS environment variable - PRIORITY 3 (manual override)
     if (deno) {
       const columns = deno.env.get("COLUMNS");
       if (columns) {
@@ -63,19 +90,31 @@ export function getTerminalWidth(): number {
       }
     }
   } catch (_error) {
-    // Silently fall back to default if detection fails
+    // Silent fallback
   }
 
   return DEFAULT_TERMINAL_WIDTH;
 }
 
 /**
- * Gets the current terminal/viewport height
- * @returns Terminal height in lines (default: 24)
+ * Gets the current terminal or viewport height in lines.
+ *
+ * Uses a priority-based detection strategy:
+ * 1. **Browser**: `window.innerHeight / 16` (approximate line height)
+ * 2. **Deno**: `Deno.consoleSize().rows`
+ * 3. **Node/Bun**: `process.stdout.rows`
+ * 4. **Fallback**: 24 lines (standard terminal height)
+ *
+ * @returns {number} Terminal height in lines (default: 24).
+ *
+ * @example
+ * ```ts
+ * const height = getTerminalHeight();
+ * console.log(height); // 40
+ * ```
  */
 export function getTerminalHeight(): number {
   try {
-    // Browser environment
     if (isBrowser()) {
       const win = getBrowserWindow();
       if (win) {
@@ -84,19 +123,17 @@ export function getTerminalHeight(): number {
       }
     }
 
-    // Deno environment
     const deno = getDenoNamespace();
     if (deno && deno.consoleSize) {
       return deno.consoleSize().rows || DEFAULT_TERMINAL_HEIGHT;
     }
 
-    // Node.js/Bun environment
     const proc = getProcessNamespace();
     if (proc && proc.stdout && proc.stdout.rows) {
       return proc.stdout.rows;
     }
   } catch (_error) {
-    // Silently fall back
+    // Silent fallback
   }
 
   return DEFAULT_TERMINAL_HEIGHT;
