@@ -1,6 +1,6 @@
 /**
  * Vero Icon System - Unicode Glyphs (Monocromáticos)
- * 
+ *
  * Todos os ícones são glyphs Unicode com largura simples (1 caractere).
  * Evitamos emojis (2 caracteres, coloridos pelo SO) para manter:
  * - Alinhamento vertical perfeito
