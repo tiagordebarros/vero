@@ -2,11 +2,11 @@ import * as ansi from "./ansi.ts";
 import type { format } from "./formatter.ts";
 import { getTerminalWidth } from "./terminal.ts";
 
-// Configuração visual da tabela (Bordas Unicode Arredondadas/Suaves)
+// Configuração visual da tabela (Bordas Unicode Arredondadas - igual aos cards)
 const CHARS = {
-  top: { left: "┌", mid: "┬", right: "┐", h: "─" },
+  top: { left: "╭", mid: "┬", right: "╮", h: "─" },
   middle: { left: "├", mid: "┼", right: "┤", h: "─" },
-  bottom: { left: "└", mid: "┴", right: "┘", h: "─" },
+  bottom: { left: "╰", mid: "┴", right: "╯", h: "─" },
   vertical: "│",
 };
 
