@@ -11,7 +11,7 @@
  * 3. COLUMNS environment variable (manual override)
  * 4. window.innerWidth (Browser)
  * 5. Fallback to 80
- * 
+ *
  * @returns Terminal width in characters (default: 80)
  */
 export function getTerminalWidth(): number {
@@ -29,12 +29,15 @@ export function getTerminalWidth(): number {
     // Node.js/Bun environment - PRIORITY 1 (updates with SIGWINCH)
     if (typeof (globalThis as any).process !== "undefined") {
       const process = (globalThis as any).process;
-      if (process.stdout && typeof process.stdout.columns === "number" && process.stdout.columns > 0) {
+      if (
+        process.stdout && typeof process.stdout.columns === "number" &&
+        process.stdout.columns > 0
+      ) {
         return process.stdout.columns;
       }
     }
 
-    // Deno environment - PRIORITY 2 
+    // Deno environment - PRIORITY 2
     if (typeof (globalThis as any).Deno !== "undefined") {
       const deno = (globalThis as any).Deno;
       if (deno.consoleSize) {
