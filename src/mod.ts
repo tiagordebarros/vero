@@ -197,10 +197,10 @@ class Vero {
     for (let i = 0; i < existingLines.length; i++) {
       const line = existingLines[i];
       const cleanLine = line.replace(/\x1b\[[0-9;]*m/g, "");
-      
+
       // Detectar se a linha já tem indentação (objetos formatados, etc)
       const hasOwnIndent = cleanLine.startsWith(" ");
-      
+
       if (cleanLine.length <= maxWidth) {
         // Linha cabe inteira
         if (i === 0) {
@@ -217,11 +217,11 @@ class Vero {
         // Linha precisa de wrap
         let remaining = cleanLine;
         let isFirstPart = true;
-        
+
         while (remaining.length > 0) {
           let prefix = "";
           let width = maxWidth;
-          
+
           if (i === 0) {
             // Primeira linha do conteúdo
             if (!isFirstPart) {
@@ -243,19 +243,19 @@ class Vero {
               width = maxWidth - originalIndent.length;
             }
           }
-          
+
           if (remaining.length <= width) {
             result.push(prefix + remaining);
             break;
           }
-          
+
           // Quebrar em espaço se possível
           let breakPoint = width;
           const lastSpace = remaining.lastIndexOf(" ", width);
           if (lastSpace > width * 0.6) {
             breakPoint = lastSpace;
           }
-          
+
           result.push(prefix + remaining.substring(0, breakPoint));
           remaining = remaining.substring(breakPoint).trimStart();
           isFirstPart = false;
@@ -355,20 +355,20 @@ class Vero {
 
   /**
    * Renderiza uma tabela ASCII inteligente e responsiva
-   * 
+   *
    * Automatically switches between two rendering modes:
    * - **Table Mode** (≤6 columns): Traditional ASCII table with optional truncation
    * - **Card View** (>6 columns or narrow terminal): Vertical cards for better readability
-   * 
+   *
    * @param data Array of objects to render
-   * 
+   *
    * @example
    * // Small table (table mode)
    * logger.table([
    *   { id: 1, name: "Alice", active: true },
    *   { id: 2, name: "Bob", active: false }
    * ]);
-   * 
+   *
    * @example
    * // Wide table with many columns (automatic card view)
    * logger.table([
@@ -411,13 +411,13 @@ class Vero {
     const terminalWidth = getTerminalWidth();
     const SMALL_SCREEN_THRESHOLD = 60;
     const useCardView = this.config.showTimestamp && terminalWidth < SMALL_SCREEN_THRESHOLD;
-    
+
     // Calcular largura máxima para a barra em card view
     const cardWidth = Math.min(terminalWidth - 4, 60);
     const innerWidth = cardWidth - 1; // Menos o padding direito
     const iconAndSpacing = 4; // " ⏱  " = 1 espaço + ícone + 2 espaços
     const maxBarWidth = useCardView ? innerWidth - iconAndSpacing : undefined;
-    
+
     const visualization = endTimer(label, maxBarWidth);
     if (!visualization) {
       this.warn(`Cronómetro '${label}' não encontrado.`);
@@ -543,13 +543,13 @@ class Vero {
     const terminalWidth = getTerminalWidth();
     const SMALL_SCREEN_THRESHOLD = 60;
     const useCardView = this.config.showTimestamp && terminalWidth < SMALL_SCREEN_THRESHOLD;
-    
+
     // Calcular largura máxima para a barra em card view
     const cardWidth = Math.min(terminalWidth - 4, 60);
     const innerWidth = cardWidth - 1; // Menos o padding direito
     const iconAndSpacing = 4; // " ⏱  " = 1 espaço + ícone + 2 espaços
     const maxBarWidth = useCardView ? innerWidth - iconAndSpacing : undefined;
-    
+
     const visualization = logTimer(label, maxBarWidth);
     if (!visualization) {
       this.warn(`Timer '${label}' not found.`);
@@ -561,7 +561,7 @@ class Vero {
       ? " " + args.map((arg) => (typeof arg === "string" ? arg : format(arg)))
         .join(" ")
       : "";
-    
+
     const fullMessage = `${visualization}${extraMessage}`;
 
     if (useCardView) {
@@ -579,7 +579,7 @@ class Vero {
     if (!condition) {
       const icon = this.config.useIcons ? "✖" : "ASSERT";
       const message = args.length > 0 ? args : ["Assertion failed"];
-      
+
       // Get stack trace for assertion
       const stack = new Error().stack;
       let stackLines: string[] = [];
