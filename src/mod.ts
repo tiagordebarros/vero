@@ -81,7 +81,8 @@ class Vero {
     const SMALL_SCREEN_THRESHOLD = 60;
 
     // Detectar se deve usar card view (telas pequenas + timestamp habilitado)
-    const useCardView = this.config.showTimestamp && terminalWidth < SMALL_SCREEN_THRESHOLD;
+    const useCardView = this.config.showTimestamp &&
+      terminalWidth < SMALL_SCREEN_THRESHOLD;
 
     if (useCardView) {
       // MODO CARD: Renderizar em box com timestamp no header
@@ -146,7 +147,11 @@ class Vero {
     const headerContent = ` ${timestamp} `;
     const headerLineWidth = cardWidth - headerContent.length; // Espaço restante após timestamp
     lines.push(
-      ansi.gray(`${CARD_CHARS.top.left}${headerContent}${CARD_CHARS.top.h.repeat(Math.max(0, headerLineWidth))}${CARD_CHARS.top.right}`)
+      ansi.gray(
+        `${CARD_CHARS.top.left}${headerContent}${
+          CARD_CHARS.top.h.repeat(Math.max(0, headerLineWidth))
+        }${CARD_CHARS.top.right}`,
+      ),
     );
 
     // Conteúdo: Badge + Message
@@ -167,12 +172,20 @@ class Vero {
       const cleanLine = line.replace(/\x1b\[[0-9;]*m/g, ""); // Remove ANSI codes
       const padding = " ".repeat(Math.max(0, innerWidth - cleanLine.length));
       // Adicionar padding à direita fixo para simetria
-      lines.push(`${ansi.gray(CARD_CHARS.vertical)}${line}${padding}${" ".repeat(rightPadding)}${ansi.gray(CARD_CHARS.vertical)}`);
+      lines.push(
+        `${ansi.gray(CARD_CHARS.vertical)}${line}${padding}${
+          " ".repeat(rightPadding)
+        }${ansi.gray(CARD_CHARS.vertical)}`,
+      );
     });
 
     // Footer
     lines.push(
-      ansi.gray(`${CARD_CHARS.bottom.left}${CARD_CHARS.bottom.h.repeat(cardWidth)}${CARD_CHARS.bottom.right}`)
+      ansi.gray(
+        `${CARD_CHARS.bottom.left}${
+          CARD_CHARS.bottom.h.repeat(cardWidth)
+        }${CARD_CHARS.bottom.right}`,
+      ),
     );
 
     return lines.join("\n");
@@ -189,7 +202,7 @@ class Vero {
     const INDENT = "    "; // 4 espaços: alinha com início do texto após " ℹ  "
 
     // Detectar se é conteúdo de objeto (tem alguma linha com indentação)
-    const isObjectContent = existingLines.some(line => {
+    const isObjectContent = existingLines.some((line) => {
       const clean = line.replace(/\x1b\[[0-9;]*m/g, "");
       return clean.startsWith("  "); // 2 espaços = indentação de objeto
     });
@@ -410,7 +423,8 @@ class Vero {
   timeEnd(label: string) {
     const terminalWidth = getTerminalWidth();
     const SMALL_SCREEN_THRESHOLD = 60;
-    const useCardView = this.config.showTimestamp && terminalWidth < SMALL_SCREEN_THRESHOLD;
+    const useCardView = this.config.showTimestamp &&
+      terminalWidth < SMALL_SCREEN_THRESHOLD;
 
     // Calcular largura máxima para a barra em card view
     const cardWidth = Math.min(terminalWidth - 4, 60);
@@ -467,7 +481,7 @@ class Vero {
     console.log(
       "  " +
         ansi.italic(
-          ansi.gray("Generated with AI assistance, refined by human craft."),
+          ansi.gray("Generated with AI assistance,\n  refined by human craft."),
         ),
     );
 
@@ -475,65 +489,91 @@ class Vero {
   }
 
   /**
-   * Heading Level 1 - Maximum emphasis
-   * Large visual size with wide spacing + single large icon
+   * Heading Level 1 - The Box
+   * Maximum emphasis with double border
+   * Uses double-line Unicode box characters
    */
   h1(text: string) {
-    const icon = "◆"; // Single large diamond
-    const title = ansi.bold(ansi.hex("#8b5cf6")(text)); // Amethyst
-    console.log(ansi.hex("#8b5cf6")("═".repeat(text.length + 6)));
-    console.log(`${icon}  ${title}  ${icon}`);
-    console.log(ansi.hex("#8b5cf6")("═".repeat(text.length + 6)));
+    const width = getTerminalWidth();
+    const MOBILE_THRESHOLD = 60;
+    const isMobile = width < MOBILE_THRESHOLD;
+    const color = ansi.hex("#8b5cf6"); // Amethyst
+
+    if (isMobile) {
+      // Mobile: left-aligned, 100% width
+      const boxWidth = width - 1;
+      const topBorder = color("╔" + "═".repeat(boxWidth - 2) + "╗");
+      const textLine = color("║") + " " + text.padEnd(boxWidth - 4) + " " +
+        color("║");
+      const bottomBorder = color("╚" + "═".repeat(boxWidth - 2) + "╝");
+      console.log("\n" + topBorder);
+      console.log(textLine);
+      console.log(bottomBorder + "\n");
+    } else {
+      // Desktop: centered text
+      const padding = 4;
+      const boxWidth = text.length + padding * 2;
+      const topBorder = color("╔" + "═".repeat(boxWidth) + "╗");
+      const textLine = color("║") + " ".repeat(padding) + text +
+        " ".repeat(padding) + color("║");
+      const bottomBorder = color("╚" + "═".repeat(boxWidth) + "╝");
+      console.log("\n" + topBorder);
+      console.log(textLine);
+      console.log(bottomBorder + "\n");
+    }
   }
 
   /**
-   * Heading Level 2 - Strong emphasis
-   * Medium-large visual size with moderate spacing
+   * Heading Level 2 - The Divider
+   * Strong emphasis with bold text and horizontal line
    */
   h2(text: string) {
-    const icon = "▸"; // Triangle
-    const title = ansi.bold(ansi.hex("#10b981")(text)); // Emerald
-    console.log(`\n${icon} ${title}`);
+    const width = getTerminalWidth();
+    const textUpper = text.toUpperCase();
+    const title = ansi.bold(ansi.cyan(textUpper));
+    const remainingSpace = Math.max(0, width - textUpper.length - 1);
+    const divider = ansi.cyan("━".repeat(remainingSpace));
+    console.log(`\n${title} ${divider}`);
   }
 
   /**
-   * Heading Level 3 - Moderate emphasis
-   * Normal size with bold
+   * Heading Level 3 - The Block
+   * Moderate emphasis with block prefix
    */
   h3(text: string) {
-    const icon = "▸"; // Triangle
-    const title = ansi.bold(ansi.hex("#3b82f6")(text)); // Sapphire
-    console.log(`${icon} ${title}`);
+    const prefix = ansi.hex("#10b981")("▍"); // Emerald green block
+    const title = ansi.bold(text);
+    console.log(`${prefix} ${title}`);
   }
 
   /**
-   * Heading Level 4 - Light emphasis
-   * Normal size without bold
+   * Heading Level 4 - The Underline
+   * Light emphasis with underline
    */
   h4(text: string) {
-    const icon = "▹"; // Outline triangle
-    const title = ansi.hex("#f59e0b")(text); // Amber
-    console.log(`${icon} ${title}`);
+    const underline = ansi.dim("─".repeat(text.length));
+    console.log(text);
+    console.log(underline);
   }
 
   /**
-   * Heading Level 5 - Minimal emphasis
-   * Smaller visual appearance with cyan
+   * Heading Level 5 - The Label
+   * Minimal emphasis with uppercase and suffix
    */
   h5(text: string) {
-    const icon = "•"; // Bullet
-    const title = ansi.cyan(text);
-    console.log(`${icon} ${title}`);
+    const textUpper = text.toUpperCase();
+    const title = ansi.dim(textUpper + " >");
+    console.log(title);
   }
 
   /**
-   * Heading Level 6 - Subtle emphasis
-   * Smallest visual with dim gray + subtle dot
+   * Heading Level 6 - The Item
+   * Subtle emphasis with prefix and italic/dim
    */
   h6(text: string) {
-    const icon = "·"; // Tiny dot
-    const title = ansi.dim(ansi.gray(text));
-    console.log(`${icon} ${title}`);
+    const prefix = "› "; // Single guillemet
+    const title = ansi.dim(ansi.italic(text));
+    console.log(`${prefix}${title}`);
   }
 
   /**
@@ -542,7 +582,8 @@ class Vero {
   timeLog(label: string, ...args: unknown[]) {
     const terminalWidth = getTerminalWidth();
     const SMALL_SCREEN_THRESHOLD = 60;
-    const useCardView = this.config.showTimestamp && terminalWidth < SMALL_SCREEN_THRESHOLD;
+    const useCardView = this.config.showTimestamp &&
+      terminalWidth < SMALL_SCREEN_THRESHOLD;
 
     // Calcular largura máxima para a barra em card view
     const cardWidth = Math.min(terminalWidth - 4, 60);
@@ -590,11 +631,15 @@ class Vero {
       // Combinar mensagem com stack trace para card view
       const terminalWidth = getTerminalWidth();
       const SMALL_SCREEN_THRESHOLD = 60;
-      const useCardView = this.config.showTimestamp && terminalWidth < SMALL_SCREEN_THRESHOLD;
+      const useCardView = this.config.showTimestamp &&
+        terminalWidth < SMALL_SCREEN_THRESHOLD;
 
       if (useCardView && stackLines.length > 0) {
         // Incluir stack trace no card
-        const allArgs = [...message, "\n" + ansi.dim(ansi.gray(stackLines.join("\n")))];
+        const allArgs = [
+          ...message,
+          "\n" + ansi.dim(ansi.gray(stackLines.join("\n"))),
+        ];
         const coloredArgs = allArgs.map((arg) =>
           typeof arg === "string" ? ansi.vero.error(arg) : arg
         );
@@ -698,11 +743,15 @@ class Vero {
     // Combinar mensagem com stack trace para card view
     const terminalWidth = getTerminalWidth();
     const SMALL_SCREEN_THRESHOLD = 60;
-    const useCardView = this.config.showTimestamp && terminalWidth < SMALL_SCREEN_THRESHOLD;
+    const useCardView = this.config.showTimestamp &&
+      terminalWidth < SMALL_SCREEN_THRESHOLD;
 
     if (useCardView && stackLines.length > 0) {
       // Incluir stack trace no card
-      const allArgs = [...message, "\n" + ansi.dim(ansi.gray(stackLines.join("\n")))];
+      const allArgs = [
+        ...message,
+        "\n" + ansi.dim(ansi.gray(stackLines.join("\n"))),
+      ];
       this.print(icon, ansi.vero.warn, allArgs);
     } else {
       // Modo normal
