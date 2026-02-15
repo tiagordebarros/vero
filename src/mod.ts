@@ -357,6 +357,13 @@ class Vero {
   }
 
   /**
+   * Adds a blank line for visual spacing
+   */
+  br() {
+    console.log("");
+  }
+
+  /**
    * Um separador visual elegante
    */
   hr() {
