@@ -9,6 +9,7 @@ import {
   startTimer,
 } from "./bench.ts";
 import { getTerminalWidth } from "./terminal.ts";
+import { ICONS } from "./icons.ts";
 
 /**
  * Configurações globais do Logger
@@ -283,7 +284,7 @@ class Vero {
    * Log Genérico (Cinza/Padrão)
    */
   log(...args: unknown[]) {
-    const icon = this.config.useIcons ? "•" : "LOG";
+    const icon = this.config.useIcons ? ICONS.log : "LOG";
     this.print(icon, ansi.gray, args);
   }
 
@@ -291,7 +292,7 @@ class Vero {
    * Informação (Azul Vero)
    */
   info(...args: unknown[]) {
-    const icon = this.config.useIcons ? "ℹ" : "INFO";
+    const icon = this.config.useIcons ? ICONS.info : "INFO";
     // Apply info color to the text content
     const coloredArgs = args.map((arg) =>
       typeof arg === "string" ? ansi.vero.info(arg) : arg
@@ -303,7 +304,7 @@ class Vero {
    * Sucesso (Verde Menta)
    */
   success(...args: unknown[]) {
-    const icon = this.config.useIcons ? "✔" : "OK";
+    const icon = this.config.useIcons ? ICONS.success : "OK";
     // Apply success color to the text content
     const coloredArgs = args.map((arg) =>
       typeof arg === "string" ? ansi.vero.success(arg) : arg
@@ -315,7 +316,7 @@ class Vero {
    * Aviso (Amarelo Pêssego)
    */
   warn(...args: unknown[]) {
-    const icon = this.config.useIcons ? "⚠" : "WARN";
+    const icon = this.config.useIcons ? ICONS.warn : "WARN";
     // Apply warn color to the text content
     const coloredArgs = args.map((arg) =>
       typeof arg === "string" ? ansi.vero.warn(arg) : arg
@@ -332,7 +333,7 @@ class Vero {
     const coloredArgs = args.map((arg) =>
       typeof arg === "string" ? ansi.vero.error(arg) : arg
     );
-    const icon = this.config.useIcons ? "✖" : "ERR";
+    const icon = this.config.useIcons ? ICONS.error : "ERR";
     this.print(icon, ansi.vero.error, coloredArgs, "stderr");
   }
 
@@ -341,7 +342,7 @@ class Vero {
    * Útil para inspeção profunda de objetos
    */
   debug(...args: unknown[]) {
-    const icon = this.config.useIcons ? "⚙" : "DBG";
+    const icon = this.config.useIcons ? ICONS.debug : "DBG";
     // Apply debug (type) color to the text content
     const coloredArgs = args.map((arg) =>
       typeof arg === "string" ? ansi.vero.type(arg) : arg
@@ -445,7 +446,7 @@ class Vero {
       return;
     }
 
-    const icon = this.config.useIcons ? "⏱" : "TIME";
+    const icon = this.config.useIcons ? ICONS.timer : "TIME";
 
     if (useCardView) {
       const output = this.createLogCard(icon, ansi.vero.warn, [visualization]);
@@ -604,7 +605,7 @@ class Vero {
       return;
     }
 
-    const icon = this.config.useIcons ? "⏱" : "TIME";
+    const icon = this.config.useIcons ? ICONS.timer : "TIME";
     const extraMessage = args.length > 0
       ? " " + args.map((arg) => (typeof arg === "string" ? arg : format(arg)))
         .join(" ")
@@ -625,7 +626,7 @@ class Vero {
    */
   assert(condition: boolean, ...args: unknown[]) {
     if (!condition) {
-      const icon = this.config.useIcons ? "✖" : "ASSERT";
+      const icon = this.config.useIcons ? ICONS.assert : "ASSERT";
       const message = args.length > 0 ? args : ["Assertion failed"];
 
       // Get stack trace for assertion
@@ -670,7 +671,7 @@ class Vero {
    */
   count(label = "default") {
     const count = incrementCounter(label);
-    const icon = this.config.useIcons ? "🔢" : "COUNT";
+    const icon = this.config.useIcons ? ICONS.count : "COUNT";
     const message = `${label}: ${count}`;
     this.print(icon, ansi.vero.info, [message]);
   }
@@ -680,7 +681,7 @@ class Vero {
    */
   countReset(label = "default") {
     resetCounter(label);
-    const icon = this.config.useIcons ? "↺" : "RESET";
+    const icon = this.config.useIcons ? ICONS.reset : "RESET";
     const message = `${label}: reset`;
     this.print(icon, ansi.dim, [ansi.gray(message)]);
   }
@@ -689,7 +690,7 @@ class Vero {
    * Creates a new inline group - increases indentation level
    */
   group(...args: unknown[]) {
-    const icon = this.config.useIcons ? "▼" : "GROUP";
+    const icon = this.config.useIcons ? ICONS.groupExpanded : "GROUP";
     const message = args.length > 0 ? args : ["Group"];
     this.print(icon, ansi.vero.info, message);
     groupIndentLevel++;
@@ -699,7 +700,7 @@ class Vero {
    * Creates a new collapsed group (same as group for terminal)
    */
   groupCollapsed(...args: unknown[]) {
-    const icon = this.config.useIcons ? "▶" : "GROUP";
+    const icon = this.config.useIcons ? ICONS.groupCollapsed : "GROUP";
     const message = args.length > 0 ? args : ["Group"];
     this.print(icon, ansi.dim, message.map((m) => ansi.gray(String(m))));
     groupIndentLevel++;
@@ -718,7 +719,7 @@ class Vero {
    * Displays an interactive listing of object properties
    */
   dir(obj: unknown, options?: { depth?: number; colors?: boolean }) {
-    const icon = this.config.useIcons ? "📋" : "DIR";
+    const icon = this.config.useIcons ? ICONS.dir : "DIR";
     const depth = options?.depth ?? 10;
     const formatted = format(obj, { maxDepth: depth });
     this.print(icon, ansi.vero.type, [formatted]);
@@ -728,7 +729,7 @@ class Vero {
    * Displays an XML/HTML element representation (for terminal, same as dir)
    */
   dirxml(obj: unknown) {
-    const icon = this.config.useIcons ? "📄" : "XML";
+    const icon = this.config.useIcons ? ICONS.dirxml : "XML";
     const formatted = format(obj);
     this.print(icon, ansi.vero.type, [formatted]);
   }
@@ -737,7 +738,7 @@ class Vero {
    * Outputs a stack trace to the console
    */
   trace(...args: unknown[]) {
-    const icon = this.config.useIcons ? "🔍" : "TRACE";
+    const icon = this.config.useIcons ? ICONS.trace : "TRACE";
     const message = args.length > 0 ? args : ["Trace"];
 
     // Get and display stack trace
@@ -776,3 +777,6 @@ export const logger: Vero = new Vero();
 
 // Exporta a classe para quem quiser instâncias customizadas
 export { Vero };
+
+// Exporta ICONS para customização/referência
+export { ICONS };
