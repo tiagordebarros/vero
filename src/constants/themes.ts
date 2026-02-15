@@ -1,45 +1,61 @@
 /**
- * Color theme palettes for Vero
- * These are the brand colors extracted from the ANSI module
+ * Color theme palettes for Vero.
+ *
+ * Defines RGB color values for the brand identity and HTTP status semantics.
+ * These values are **hardcoded by design** to maintain consistent aesthetics.
+ *
+ * @module
  */
 
 /**
- * Vero brand color palette (Pastel colors)
- * These RGB values are hardcoded by design and NOT user-configurable
+ * Vero brand color palette (pastel colors).
+ *
+ * These RGB values are carefully calibrated for terminal readability
+ * and visual hierarchy. They are NOT user-configurable to preserve
+ * consistent brand identity across all environments.
+ *
+ * Color meanings:
+ * - **error** (Soft Pink): Errors without harsh red
+ * - **success** (Mint Green): Successful operations and strings
+ * - **info** (Pale Sky Blue): Informational messages and properties
+ * - **warn** (Peach Orange): Warnings and numbers
+ * - **type** (Lavender Purple): Types, objects, and metadata
+ * - **border** (Stone Gray): Borders, punctuation, and structure
  */
 export const VERO_THEME = {
-  // Soft Pink (Errors)
   error: { r: 255, g: 175, b: 215 },
-  // Mint Green (Success/Strings)
   success: { r: 135, g: 255, b: 175 },
-  // Pale Sky Blue (Info/Properties)
   info: { r: 135, g: 215, b: 255 },
-  // Peach Orange (Warnings/Numbers)
   warn: { r: 255, g: 215, b: 135 },
-  // Lavender Purple (Objects/Types)
   type: { r: 175, g: 135, b: 255 },
-  // Stone Gray (Punctuation/Table borders)
   border: { r: 108, g: 108, b: 108 },
 } as const;
 
 /**
- * HTTP status code color palette (for web development)
+ * HTTP status code color palette for web development.
+ *
+ * Provides semantic colorization for HTTP verbs and status codes.
+ * Used automatically by the object formatter when detecting HTTP-related values.
+ *
+ * **HTTP Verbs:**
+ * - **safe**: Mint green - GET, HEAD, OPTIONS (read-only)
+ * - **mutation**: Peach orange - POST, PUT, PATCH (modifies data)
+ * - **delete**: Soft pink - DELETE (destructive)
+ *
+ * **HTTP Status Codes:**
+ * - **info** (1xx): Lavender purple - informational/processing
+ * - **success** (2xx): Mint green - successful
+ * - **redirect** (3xx): Sky blue - redirection
+ * - **clientError** (4xx): Peach orange - client-side errors
+ * - **serverError** (5xx): Soft pink - server-side errors
  */
 export const HTTP_THEME = {
-  // Safe HTTP verbs (GET, HEAD, OPTIONS)
-  safe: { r: 135, g: 255, b: 175 }, // Mint green - read-only
-  // Mutation HTTP verbs (POST, PUT, PATCH)
-  mutation: { r: 255, g: 215, b: 135 }, // Peach orange - modifies data
-  // Deletion HTTP verbs (DELETE)
-  delete: { r: 255, g: 175, b: 215 }, // Soft pink - destructive operation
-  // Status 1xx (Informational)
-  info: { r: 175, g: 135, b: 255 }, // Lavender purple - processing
-  // Status 2xx (Success)
-  success: { r: 135, g: 255, b: 175 }, // Mint green
-  // Status 3xx (Redirection)
-  redirect: { r: 135, g: 215, b: 255 }, // Sky blue
-  // Status 4xx (Client error)
-  clientError: { r: 255, g: 215, b: 135 }, // Peach orange
-  // Status 5xx (Server error)
-  serverError: { r: 255, g: 175, b: 215 }, // Soft pink
+  safe: { r: 135, g: 255, b: 175 },
+  mutation: { r: 255, g: 215, b: 135 },
+  delete: { r: 255, g: 175, b: 215 },
+  info: { r: 175, g: 135, b: 255 },
+  success: { r: 135, g: 255, b: 175 },
+  redirect: { r: 135, g: 215, b: 255 },
+  clientError: { r: 255, g: 215, b: 135 },
+  serverError: { r: 255, g: 175, b: 215 },
 } as const;
