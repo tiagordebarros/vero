@@ -79,20 +79,21 @@ function renderBar(label: string, ms: number, maxWidth?: number): string {
   // 3. Determinar largura da barra baseado no espaço disponível
   let barWidth = BAR_WIDTH;
   const labelPadded = label.padEnd(15);
-  
+
   // Se maxWidth foi fornecido (tela pequena), ajustar
   if (maxWidth !== undefined) {
     const baseLabelLength = 15; // label.padEnd(15)
     const timeLabelLength = timeStr.length + 2; // "XXms"
     const spacesCount = 2; // espaços entre elementos
-    const availableForBar = maxWidth - baseLabelLength - timeLabelLength - spacesCount;
-    
+    const availableForBar = maxWidth - baseLabelLength - timeLabelLength -
+      spacesCount;
+
     // Cada bloco ■ ocupa 2 células visuais, então dividir por 2
     // Suprimir barra se não houver espaço suficiente (< 10 células = 5 blocos)
     if (availableForBar < 10) {
       return `${ansi.bold(ansi.white(labelPadded))} ${timeLabel}`;
     }
-    
+
     // Calcular número de blocos que cabem (cada bloco = 2 células)
     barWidth = Math.min(Math.floor(availableForBar / 2), BAR_WIDTH);
   }
