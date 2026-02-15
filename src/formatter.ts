@@ -147,7 +147,7 @@ export function format(
   const nestedIndent = INDENT.repeat(opts.depth + 1);
 
   const lines = keys.map((key) => {
-    const val = (value as any)[key];
+    const val = (value as Record<string, unknown>)[key];
     const formattedVal = format(val, { ...opts, depth: opts.depth + 1 });
 
     // A chave é colorida sutilmente, o valor brilha

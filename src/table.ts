@@ -13,7 +13,7 @@ const CHARS = {
 /**
  * Renderiza um card vertical para um registro
  */
-function createCard(row: any, index: number, terminalWidth: number): string {
+function createCard(row: Record<string, unknown>, index: number, terminalWidth: number): string {
   const lines: string[] = [];
   const cardWidth = Math.min(terminalWidth - 4, 60); // Máximo 60 colunas para cards
   const contentWidth = cardWidth - 2; // Espaço interno (sem bordas)
@@ -75,7 +75,7 @@ function createCard(row: any, index: number, terminalWidth: number): string {
  * Cria uma tabela ASCII bonita e responsiva
  * Se não couber no terminal, renderiza como cards verticais
  */
-export function createTable(data: any[]): string {
+export function createTable(data: unknown[]): string {
   if (!data || data.length === 0) {
     return ansi.dim(ansi.gray(" (Tabela Vazia) "));
   }
@@ -91,7 +91,7 @@ export function createTable(data: any[]): string {
   // 3. Matriz de Dados (Stringificada)
   const stringMatrix = rows.map((row) => {
     return headers.map((header) => {
-      const val = (row as any)[header];
+      const val = (row as Record<string, unknown>)[header];
       if (typeof val === "object" && val !== null) return "[Obj]";
       if (val === undefined) return "-";
       return String(val);
@@ -129,7 +129,7 @@ export function createTable(data: any[]): string {
 
   if (TOO_MANY_COLUMNS || wouldNeedHeavyTruncation) {
     // MODO CARD: Renderizar cada linha como um card vertical
-    return rows.map((row, i) => createCard(row, i, terminalWidth)).join("\n");
+    return rows.map((row, i) => createCard(row as Record<string, unknown>, i, terminalWidth)).join("\n");
   }
 
   // 4.2 MODO TABELA: Ajustar larguras
@@ -224,8 +224,8 @@ export function createTable(data: any[]): string {
   // Linhas de Dados
   stringMatrix.forEach((row, i) => {
     // Usar formatter com modo compact para colorização em tabelas
-    const visualRow = row.map((cellStr, colIndex) => {
-      const originalVal = (rows[i] as any)[headers[colIndex]];
+    const visualRow = row.map((_cellStr, colIndex) => {
+      const originalVal = (rows[i] as Record<string, unknown>)[headers[colIndex]];
       // Usar formatter com depth limitado e modo compact para células
       return format(originalVal, { depth: 0, maxDepth: 1, compact: true });
     });
@@ -246,7 +246,7 @@ export function createTable(data: any[]): string {
           const truncated = cleanText.substring(0, maxCellWidth - 1) + "…";
 
           // Re-aplicar a cor ao texto truncado usando formatter em modo compact
-          const originalVal = (rows[i] as any)[headers[idx]];
+          const originalVal = (rows[i] as Record<string, unknown>)[headers[idx]];
           displayCell = format(originalVal, {
             depth: 0,
             maxDepth: 1,

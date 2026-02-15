@@ -141,7 +141,6 @@ class Vero {
     const lines: string[] = [];
     const terminalWidth = getTerminalWidth();
     const cardWidth = Math.min(terminalWidth - 4, 60);
-    const contentWidth = cardWidth; // Largura total do conteúdo (incluindo bordas)
 
     // Header: Timestamp
     const timestamp = getTimestampPlain();
@@ -170,6 +169,7 @@ class Vero {
 
     contentLines.forEach((line) => {
       // Calcular padding considerando códigos ANSI
+      // deno-lint-ignore no-control-regex
       const cleanLine = line.replace(/\x1b\[[0-9;]*m/g, ""); // Remove ANSI codes
       const padding = " ".repeat(Math.max(0, innerWidth - cleanLine.length));
       // Adicionar padding à direita fixo para simetria
@@ -196,6 +196,7 @@ class Vero {
    * Remove códigos ANSI de uma string
    */
   private stripAnsi(text: string): string {
+    // deno-lint-ignore no-control-regex
     return text.replace(/\x1b\[[0-9;]*m/g, "");
   }
 
@@ -210,7 +211,9 @@ class Vero {
 
     while (i < text.length && visualIndex <= visualPosition) {
       // Detectar código ANSI
+      // deno-lint-ignore no-control-regex
       if (text.substring(i).match(/^\x1b\[[0-9;]*m/)) {
+        // deno-lint-ignore no-control-regex
         const ansiMatch = text.substring(i).match(/^\x1b\[[0-9;]*m/)!;
         const code = ansiMatch[0];
 
@@ -248,7 +251,9 @@ class Vero {
 
     while (i < text.length) {
       // Detectar código ANSI
+      // deno-lint-ignore no-control-regex
       if (text.substring(i).match(/^\x1b\[[0-9;]*m/)) {
+        // deno-lint-ignore no-control-regex
         const ansiMatch = text.substring(i).match(/^\x1b\[[0-9;]*m/)!;
         // Sempre inclui ANSI se já começamos a copiar
         if (visualIndex >= targetStart) {
@@ -290,9 +295,6 @@ class Vero {
     for (let i = 0; i < existingLines.length; i++) {
       const line = existingLines[i];
       const cleanLine = this.stripAnsi(line);
-
-      // Detectar se a linha já tem indentação (objetos formatados, etc)
-      const hasOwnIndent = cleanLine.startsWith(" ");
 
       if (cleanLine.length <= maxWidth) {
         // Linha cabe inteira
@@ -525,7 +527,7 @@ class Vero {
    *   }
    * ]);
    */
-  table(data: any[]) {
+  table(data: unknown[]) {
     // Se não for array, usa o log normal
     if (!Array.isArray(data)) {
       this.warn("table() espera um array. Usando log padrão:");
