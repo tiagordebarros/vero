@@ -193,6 +193,50 @@ class Vero {
   }
 
   /**
+   * Remove códigos ANSI de uma string
+   */
+  private stripAnsi(text: string): string {
+    return text.replace(/\x1b\[[0-9;]*m/g, "");
+  }
+
+  /**
+   * Extrai substring de texto com ANSI preservando os códigos de cor
+   */
+  private sliceWithAnsi(text: string, start: number, end?: number): string {
+    const clean = this.stripAnsi(text);
+    const targetStart = start;
+    const targetEnd = end ?? clean.length;
+    
+    let result = "";
+    let visualIndex = 0;
+    let i = 0;
+    
+    while (i < text.length) {
+      // Detectar código ANSI
+      if (text.substring(i).match(/^\x1b\[[0-9;]*m/)) {
+        const ansiMatch = text.substring(i).match(/^\x1b\[[0-9;]*m/)!;
+        // Sempre inclui ANSI se já começamos a copiar
+        if (visualIndex >= targetStart) {
+          result += ansiMatch[0];
+        }
+        i += ansiMatch[0].length;
+        continue;
+      }
+      
+      // Caractere normal
+      if (visualIndex >= targetStart && visualIndex < targetEnd) {
+        result += text[i];
+      }
+      visualIndex++;
+      i++;
+      
+      if (visualIndex >= targetEnd) break;
+    }
+    
+    return result;
+  }
+
+  /**
    * Quebra texto em múltiplas linhas respeitando a largura máxima
    * Preserva quebras de linha existentes (como em objetos formatados)
    * Linhas subsequentes são indentadas para alinhar com o início do texto
@@ -204,13 +248,13 @@ class Vero {
 
     // Detectar se é conteúdo de objeto (tem alguma linha com indentação)
     const isObjectContent = existingLines.some((line) => {
-      const clean = line.replace(/\x1b\[[0-9;]*m/g, "");
+      const clean = this.stripAnsi(line);
       return clean.startsWith("  "); // 2 espaços = indentação de objeto
     });
 
     for (let i = 0; i < existingLines.length; i++) {
       const line = existingLines[i];
-      const cleanLine = line.replace(/\x1b\[[0-9;]*m/g, "");
+      const cleanLine = this.stripAnsi(line);
 
       // Detectar se a linha já tem indentação (objetos formatados, etc)
       const hasOwnIndent = cleanLine.startsWith(" ");
@@ -228,11 +272,11 @@ class Vero {
           result.push(INDENT + line);
         }
       } else {
-        // Linha precisa de wrap
-        let remaining = cleanLine;
+        // Linha precisa de wrap - usar clean para cálculo, original para output
+        let offset = 0; // Posição na string limpa
         let isFirstPart = true;
 
-        while (remaining.length > 0) {
+        while (offset < cleanLine.length) {
           let prefix = "";
           let width = maxWidth;
 
@@ -258,20 +302,31 @@ class Vero {
             }
           }
 
-          if (remaining.length <= width) {
-            result.push(prefix + remaining);
+          const remaining = cleanLine.length - offset;
+          if (remaining <= width) {
+            // Última parte - pega do offset até o final
+            const chunk = this.sliceWithAnsi(line, offset);
+            result.push(prefix + chunk);
             break;
           }
 
           // Quebrar em espaço se possível
-          let breakPoint = width;
-          const lastSpace = remaining.lastIndexOf(" ", width);
-          if (lastSpace > width * 0.6) {
+          let breakPoint = offset + width;
+          const lastSpace = cleanLine.lastIndexOf(" ", breakPoint);
+          if (lastSpace > offset && lastSpace >= offset + width * 0.6) {
             breakPoint = lastSpace;
           }
 
-          result.push(prefix + remaining.substring(0, breakPoint));
-          remaining = remaining.substring(breakPoint).trimStart();
+          // Extrai chunk com ANSI preservado
+          const chunk = this.sliceWithAnsi(line, offset, breakPoint);
+          result.push(prefix + chunk);
+          
+          // Pular espaços no início da próxima parte
+          while (breakPoint < cleanLine.length && cleanLine[breakPoint] === " ") {
+            breakPoint++;
+          }
+          
+          offset = breakPoint;
           isFirstPart = false;
         }
       }
