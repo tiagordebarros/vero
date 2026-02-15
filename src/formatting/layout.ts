@@ -1,34 +1,47 @@
 /**
- * Layout rendering utilities
- * Domain-specific helpers for visual formatting (cards, tables, text wrapping)
+ * Layout rendering utilities.
+ *
+ * Domain-specific helpers for visual formatting including cards, tables, and text wrapping.
+ * Handles responsive layout switching based on terminal width.
+ *
+ * @module
  */
 
 import * as ansi from "./ansi.ts";
 import { format } from "./object-formatter.ts";
 import { getTerminalWidth } from "../utils/terminal.ts";
-import { stripAnsi, getActiveAnsiAt, sliceWithAnsi } from "../utils/text.ts";
+import { getActiveAnsiAt, sliceWithAnsi, stripAnsi } from "../utils/text.ts";
 import { getTimestamp } from "../utils/time.ts";
 import { CARD_CHARS, TABLE_CHARS } from "../constants/box-chars.ts";
 import { SMALL_SCREEN_THRESHOLD } from "../constants/defaults.ts";
 
 /**
- * Quebra texto em múltiplas linhas respeitando a largura máxima
- * Preserva quebras de linha existentes (como em objetos formatados)
- * Linhas subsequentes são indentadas para alinhar com o início do texto
+ * Wraps text into multiple lines respecting maximum width.
  *
- * HELPER DE DOMÍNIO: Esta função conhece a indentação padrão do Vero (4 espaços
- * que alinham com o espaço após " ℹ  "). É crítica para quebra de linhas
- * em cards e logs multi-linha.
+ * Preserves existing line breaks (e.g., in formatted objects) and indents
+ * subsequent lines to align with the start of the text. Uses domain knowledge
+ * of Vero's standard indentation (4 spaces, aligning after " ℹ  ").
+ *
+ * Critical for line wrapping in cards and multi-line logs.
+ *
+ * @param {string} text - Text to wrap (may contain ANSI codes and line breaks).
+ * @param {number} maxWidth - Maximum visual width per line (excluding ANSI codes).
+ * @returns {string[]} Array of wrapped lines.
+ *
+ * @example
+ * ```ts
+ * const lines = wrapText("A very long message that needs wrapping", 20);
+ * // ["A very long message", "    that needs", "    wrapping"]
+ * ```
  */
 export function wrapText(text: string, maxWidth: number): string[] {
   const existingLines = text.split("\n");
   const result: string[] = [];
-  const INDENT = "    "; // 4 espaços: alinha com início do texto após " ℹ  "
+  const INDENT = "    ";
 
-  // Detectar se é conteúdo de objeto (tem alguma linha com indentação)
   const isObjectContent = existingLines.some((line) => {
     const clean = stripAnsi(line);
-    return clean.startsWith("  "); // 2 espaços = indentação de objeto
+    return clean.startsWith("  ");
   });
 
   for (let i = 0; i < existingLines.length; i++) {
@@ -36,19 +49,14 @@ export function wrapText(text: string, maxWidth: number): string[] {
     const cleanLine = stripAnsi(line);
 
     if (cleanLine.length <= maxWidth) {
-      // Linha cabe inteira
       if (i === 0) {
-        // Primeira linha: sem indentação extra
         result.push(line);
       } else if (isObjectContent) {
-        // Faz parte de objeto: manter exatamente como está
         result.push(line);
       } else {
-        // Linha 2+ sem indentação (ex: stack trace)
         result.push(INDENT + line);
       }
     } else {
-      // Linha precisa de wrap
       let offset = 0;
       let isFirstPart = true;
 
@@ -94,7 +102,6 @@ export function wrapText(text: string, maxWidth: number): string[] {
           break;
         }
 
-        // Quebrar em espaço se possível
         let breakPoint = offset + width;
         const lastSpace = cleanLine.lastIndexOf(" ", breakPoint);
         if (lastSpace > offset && lastSpace >= offset + width * 0.6) {
@@ -131,7 +138,28 @@ export function wrapText(text: string, maxWidth: number): string[] {
 }
 
 /**
- * Cria um card visual para o log (usado em telas pequenas)
+ * Creates a visual card for log output (used on small screens).
+ *
+ * Renders a bordered card with:
+ * - Header: Timestamp
+ * - Body: Log badge (icon/label) + message with automatic wrapping
+ * - Footer: Bottom border
+ *
+ * Automatically used when terminal width < 60 characters and timestamps are enabled.
+ *
+ * @param {string} _level - Log level (unused, kept for future enhancements).
+ * @param {string} badge - Formatted badge text (e.g., colored icon).
+ * @param {string} message - Log message content.
+ * @returns {string} Formatted card as multi-line string.
+ *
+ * @example
+ * ```ts
+ * const card = createLogCard("info", "ℹ", "Application started");
+ * // ╭ 14:32:18.042 ────╮
+ * // │ ℹ  Application   │
+ * // │    started       │
+ * // ╰──────────────────╯
+ * ```
  */
 export function createLogCard(
   _level: string,
@@ -142,7 +170,6 @@ export function createLogCard(
   const terminalWidth = getTerminalWidth();
   const cardWidth = Math.min(terminalWidth - 4, 60);
 
-  // Header: Timestamp
   const timestamp = getTimestamp();
   const headerContent = ` ${timestamp} `;
   const headerLineWidth = cardWidth - headerContent.length;
@@ -154,7 +181,6 @@ export function createLogCard(
     ),
   );
 
-  // Conteúdo: Badge + Message
   const fullContent = ` ${badge}  ${message}`;
   const rightPadding = 1;
   const innerWidth = cardWidth - rightPadding;
@@ -170,7 +196,6 @@ export function createLogCard(
     );
   });
 
-  // Footer
   lines.push(
     ansi.gray(
       `${CARD_CHARS.bottom.left}${
@@ -183,7 +208,15 @@ export function createLogCard(
 }
 
 /**
- * Renderiza um card vertical para um registro de tabela (interno)
+ * Renders a vertical card for a single table row (internal helper).
+ *
+ * Used when table data doesn't fit in traditional table layout.
+ * Creates a bordered card showing each property as a key-value pair.
+ *
+ * @param {Record<string, unknown>} row - Row data (key-value pairs).
+ * @param {number} index - Row index (for card title).
+ * @param {number} terminalWidth - Current terminal width.
+ * @returns {string} Formatted card as multi-line string.
  */
 function createCard(
   row: Record<string, unknown>,
@@ -194,8 +227,7 @@ function createCard(
   const cardWidth = Math.min(terminalWidth - 4, 60);
   const contentWidth = cardWidth - 2;
 
-  // Título do card
-  const title = ` Registro #${index + 1} `;
+  const title = ` Record #${index + 1} `;
   const titleLine = "─".repeat(Math.max(0, cardWidth - title.length));
   lines.push(
     ansi.gray(
@@ -203,7 +235,6 @@ function createCard(
     ),
   );
 
-  // Propriedades
   const entries = Object.entries(row);
   entries.forEach(([key, val]) => {
     const formattedValue = format(val, {
@@ -235,12 +266,11 @@ function createCard(
     );
   });
 
-  // Base
   lines.push(
     ansi.gray(
-      `${TABLE_CHARS.bottom.left}${"─".repeat(cardWidth)}${
-        TABLE_CHARS.bottom.right
-      }`,
+      `${TABLE_CHARS.bottom.left}${
+        "─".repeat(cardWidth)
+      }${TABLE_CHARS.bottom.right}`,
     ),
   );
 
@@ -248,23 +278,68 @@ function createCard(
 }
 
 /**
- * Cria uma tabela ASCII bonita e responsiva
- * Se não couber no terminal, renderiza como cards verticais
+ * Creates a responsive ASCII table with automatic layout switching.
+ *
+ * Intelligently chooses between two rendering modes:
+ * - **Table Mode** (≤6 columns, fits terminal): Traditional ASCII table with borders
+ * - **Card View** (>6 columns or won't fit): Vertical cards for better readability
+ *
+ * Features:
+ * - Auto-detection of object keys as headers
+ * - Column width calculation and truncation
+ * - Responsive scaling based on terminal width
+ * - Colorized cells using the object formatter
+ * - Small screen optimization (card expansion)
+ *
+ * @param {unknown[]} data - Array of objects to render (or primitive values).
+ * @returns {string} Formatted table or card view as multi-line string.
+ *
+ * @example
+ * ```ts
+ * const users = [
+ *   { id: 1, name: "Alice", age: 30 },
+ *   { id: 2, name: "Bob", age: 25 }
+ * ];
+ * console.log(createTable(users));
+ * // ╭────┬───────┬─────╮
+ * // │ id │ name  │ age │
+ * // ├────┼───────┼─────┤
+ * // │ 1  │ Alice │ 30  │
+ * // │ 2  │ Bob   │ 25  │
+ * // ╰────┴───────┴─────╯
+ * ```
+ *
+ * @example
+ * ```ts
+ * // Empty table
+ * createTable([]);
+ * // " (Empty Table) "
+ * ```
+ *
+ * @example
+ * ```ts
+ * // Primitive values are wrapped
+ * createTable([42, "hello", true]);
+ * // ╭───────╮
+ * // │ value │
+ * // ├───────┤
+ * // │ 42    │
+ * // │ hello │
+ * // │ true  │
+ * // ╰───────╯
+ * ```
  */
 export function createTable(data: unknown[]): string {
   if (!data || data.length === 0) {
-    return ansi.dim(ansi.gray(" (Tabela Vazia) "));
+    return ansi.dim(ansi.gray(" (Empty Table) "));
   }
 
-  // 1. Normalizar Input
   const rows = data.map((d) =>
     typeof d === "object" && d !== null ? d : { value: d }
   );
 
-  // 2. Headers
   const headers = Array.from(new Set(rows.flatMap((r) => Object.keys(r))));
 
-  // 3. Stringify Matrix
   const stringMatrix = rows.map((row) => {
     return headers.map((header) => {
       const val = (row as Record<string, unknown>)[header];
@@ -274,7 +349,6 @@ export function createTable(data: unknown[]): string {
     });
   });
 
-  // 4. Calcular Larguras
   const terminalWidth = getTerminalWidth();
   const maxTableWidth = terminalWidth - 2;
 
@@ -290,7 +364,6 @@ export function createTable(data: unknown[]): string {
   const totalWidth = colWidths.reduce((sum, w) => sum + w, 0) +
     (headers.length + 1);
 
-  // 4.1 Decidir entre MODO TABELA vs MODO CARD
   const MIN_READABLE_COL_WIDTH = 10;
   const TOO_MANY_COLUMNS = headers.length > 6;
 
@@ -301,7 +374,6 @@ export function createTable(data: unknown[]): string {
     });
 
   if (TOO_MANY_COLUMNS || wouldNeedHeavyTruncation) {
-    // MODO CARD
     return rows
       .map((row, i) =>
         createCard(row as Record<string, unknown>, i, terminalWidth)
@@ -309,7 +381,6 @@ export function createTable(data: unknown[]): string {
       .join("\n");
   }
 
-  // 4.2 MODO TABELA: Ajustar larguras
   const isSmallScreen = terminalWidth < SMALL_SCREEN_THRESHOLD;
   const bordersWidth = headers.length + 1;
 
@@ -349,7 +420,6 @@ export function createTable(data: unknown[]): string {
     }
   }
 
-  // 5. Funções de Desenho
   const drawLine = (type: "top" | "middle" | "bottom") => {
     const chars = TABLE_CHARS[type]!;
     const segments = colWidths.map((w) => chars.h.repeat(w));
@@ -374,7 +444,6 @@ export function createTable(data: unknown[]): string {
     return `${separator}${content.join(separator)}${separator}`;
   };
 
-  // 6. Renderização Final
   const lines: string[] = [];
 
   lines.push(ansi.gray(drawLine("top")));
