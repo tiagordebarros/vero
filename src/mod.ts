@@ -156,16 +156,18 @@ class Vero {
       .join(" ");
 
     // Dividir mensagem em múltiplas linhas se necessário
-    // Alinhamento: 1 espaço antes do ícone (alinhado com timestamp) + 1 espaço após ícone (50% redução)
-    const fullContent = ` ${badge} ${message}`;
-    const innerWidth = cardWidth; // Largura disponível para o conteúdo (total interno)
+    // Alinhamento: 1 espaço antes do ícone + 2 espaços após ícone para melhor legibilidade
+    const fullContent = ` ${badge}  ${message}`;
+    const rightPadding = 1; // Padding simétrico à direita
+    const innerWidth = cardWidth - rightPadding; // Largura disponível (reservando espaço à direita)
     const contentLines = this.wrapText(fullContent, innerWidth);
 
     contentLines.forEach((line) => {
       // Calcular padding considerando códigos ANSI
       const cleanLine = line.replace(/\x1b\[[0-9;]*m/g, ""); // Remove ANSI codes
       const padding = " ".repeat(Math.max(0, innerWidth - cleanLine.length));
-      lines.push(`${ansi.gray(CARD_CHARS.vertical)}${line}${padding}${ansi.gray(CARD_CHARS.vertical)}`);
+      // Adicionar padding à direita fixo para simetria
+      lines.push(`${ansi.gray(CARD_CHARS.vertical)}${line}${padding}${" ".repeat(rightPadding)}${ansi.gray(CARD_CHARS.vertical)}`);
     });
 
     // Footer
@@ -179,23 +181,85 @@ class Vero {
   /**
    * Quebra texto em múltiplas linhas respeitando a largura máxima
    * Preserva quebras de linha existentes (como em objetos formatados)
+   * Linhas subsequentes são indentadas para alinhar com o início do texto
    */
   private wrapText(text: string, maxWidth: number): string[] {
-    // Primeiro, separar por quebras de linha existentes
     const existingLines = text.split("\n");
     const result: string[] = [];
+    const INDENT = "    "; // 4 espaços: alinha com início do texto após " ℹ  "
 
-    for (const line of existingLines) {
-      // Remove códigos ANSI para calcular tamanho real
+    // Detectar se é conteúdo de objeto (tem alguma linha com indentação)
+    const isObjectContent = existingLines.some(line => {
+      const clean = line.replace(/\x1b\[[0-9;]*m/g, "");
+      return clean.startsWith("  "); // 2 espaços = indentação de objeto
+    });
+
+    for (let i = 0; i < existingLines.length; i++) {
+      const line = existingLines[i];
       const cleanLine = line.replace(/\x1b\[[0-9;]*m/g, "");
       
+      // Detectar se a linha já tem indentação (objetos formatados, etc)
+      const hasOwnIndent = cleanLine.startsWith(" ");
+      
       if (cleanLine.length <= maxWidth) {
-        result.push(line); // Preserva a linha original com ANSI
+        // Linha cabe inteira
+        if (i === 0) {
+          // Primeira linha: sem indentação extra
+          result.push(line);
+        } else if (isObjectContent) {
+          // Faz parte de objeto: manter exatamente como está (sem adicionar espaços)
+          result.push(line);
+        } else {
+          // Linha 2+ sem indentação (ex: stack trace): adicionar
+          result.push(INDENT + line);
+        }
       } else {
-        // Linha muito longa - truncar mas mantendo a linha original até onde couber
-        // Por simplicidade, truncar a versão limpa e adicionar "..."
-        const truncated = cleanLine.slice(0, maxWidth - 3) + "...";
-        result.push(truncated); // TODO: Implementar truncamento preservando ANSI
+        // Linha precisa de wrap
+        let remaining = cleanLine;
+        let isFirstPart = true;
+        
+        while (remaining.length > 0) {
+          let prefix = "";
+          let width = maxWidth;
+          
+          if (i === 0) {
+            // Primeira linha do conteúdo
+            if (!isFirstPart) {
+              // Continuação da primeira linha: indentar
+              prefix = INDENT;
+              width = maxWidth - INDENT.length;
+            }
+          } else if (!isObjectContent) {
+            // Linhas 2+ que NÃO fazem parte de objeto (stack traces, etc)
+            prefix = INDENT;
+            width = maxWidth - INDENT.length;
+          } else {
+            // Linhas de objeto: manter indentação original
+            const originalIndent = cleanLine.match(/^ */)?.[0] || "";
+            if (isFirstPart) {
+              prefix = "";
+            } else {
+              prefix = originalIndent;
+              width = maxWidth - originalIndent.length;
+            }
+          }
+          
+          if (remaining.length <= width) {
+            result.push(prefix + remaining);
+            break;
+          }
+          
+          // Quebrar em espaço se possível
+          let breakPoint = width;
+          const lastSpace = remaining.lastIndexOf(" ", width);
+          if (lastSpace > width * 0.6) {
+            breakPoint = lastSpace;
+          }
+          
+          result.push(prefix + remaining.substring(0, breakPoint));
+          remaining = remaining.substring(breakPoint).trimStart();
+          isFirstPart = false;
+        }
       }
     }
 
@@ -350,9 +414,9 @@ class Vero {
     
     // Calcular largura máxima para a barra em card view
     const cardWidth = Math.min(terminalWidth - 4, 60);
-    const innerWidth = cardWidth;
-    const iconWidth = 4; // "⏱   "
-    const maxBarWidth = useCardView ? innerWidth - iconWidth : undefined;
+    const innerWidth = cardWidth - 1; // Menos o padding direito
+    const iconAndSpacing = 4; // " ⏱  " = 1 espaço + ícone + 2 espaços
+    const maxBarWidth = useCardView ? innerWidth - iconAndSpacing : undefined;
     
     const visualization = endTimer(label, maxBarWidth);
     if (!visualization) {
@@ -482,9 +546,9 @@ class Vero {
     
     // Calcular largura máxima para a barra em card view
     const cardWidth = Math.min(terminalWidth - 4, 60);
-    const innerWidth = cardWidth;
-    const iconWidth = 4; // "⏱   "
-    const maxBarWidth = useCardView ? innerWidth - iconWidth : undefined;
+    const innerWidth = cardWidth - 1; // Menos o padding direito
+    const iconAndSpacing = 4; // " ⏱  " = 1 espaço + ícone + 2 espaços
+    const maxBarWidth = useCardView ? innerWidth - iconAndSpacing : undefined;
     
     const visualization = logTimer(label, maxBarWidth);
     if (!visualization) {
