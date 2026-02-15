@@ -1,5 +1,5 @@
 import * as ansi from "./ansi.ts";
-import type { format } from "./formatter.ts";
+import { format } from "./formatter.ts";
 import { getTerminalWidth } from "./terminal.ts";
 
 // Configuração visual da tabela (Bordas Unicode Arredondadas - igual aos cards)
@@ -28,7 +28,14 @@ function createCard(row: any, index: number, terminalWidth: number): string {
   // Propriedades
   const entries = Object.entries(row);
   entries.forEach(([key, val]) => {
-    // Formatar valor
+    // Usar formatter com modo compact para tabelas
+    const formattedValue = format(val, {
+      depth: 0,
+      maxDepth: 1,
+      compact: true,
+    });
+
+    // Extrair texto limpo para cálculo de padding
     let valueStr: string;
     if (typeof val === "object" && val !== null) {
       valueStr = "[Obj]";
@@ -38,24 +45,10 @@ function createCard(row: any, index: number, terminalWidth: number): string {
       valueStr = String(val);
     }
 
-    // Colorir baseado no tipo
-    let coloredValue: string;
-    if (typeof val === "number") {
-      coloredValue = ansi.vero.warn(valueStr);
-    } else if (typeof val === "boolean") {
-      coloredValue = val
-        ? ansi.vero.success(valueStr)
-        : ansi.vero.error(valueStr);
-    } else if (val === null || val === undefined) {
-      coloredValue = ansi.dim(valueStr);
-    } else {
-      coloredValue = ansi.vero.info(valueStr);
-    }
-
     // Montar linha: "│ key: value │"
     const keyPart = ansi.bold(ansi.white(key));
     const separator = ansi.dim(": ");
-    const display = `${keyPart}${separator}${coloredValue}`;
+    const display = `${keyPart}${separator}${formattedValue}`;
 
     // Calcular padding (precisa remover códigos ANSI do cálculo)
     const cleanLength = key.length + 2 + valueStr.length; // key + ": " + value
@@ -143,7 +136,7 @@ export function createTable(data: any[]): string {
   const SMALL_SCREEN_THRESHOLD = 60;
   const isSmallScreen = terminalWidth < SMALL_SCREEN_THRESHOLD;
   const bordersWidth = headers.length + 1; // Separadores verticais
-  
+
   if (totalWidth > maxTableWidth) {
     // Tabela muito larga: reduzir proporcionalmente
     const MIN_COL_WIDTH = 8;
@@ -162,24 +155,24 @@ export function createTable(data: any[]): string {
     const cardWidth = Math.min(terminalWidth - 4, 60);
     const targetInnerWidth = cardWidth; // Caracteres entre os cantos (sem contar ╰ e ╯)
     const currentContentWidth = colWidths.reduce((s, w) => s + w, 0);
-    
+
     // Largura interna da tabela = soma das colunas + separadores internos
     // Exemplo: 3 colunas → colWidth1 + | + colWidth2 + | + colWidth3
     // Total entre cantos = colWidths.sum + (headers.length - 1)
     const currentInnerWidth = currentContentWidth + (headers.length - 1);
-    
+
     if (currentInnerWidth < targetInnerWidth) {
       const targetContentWidth = targetInnerWidth - (headers.length - 1);
       const expansionFactor = targetContentWidth / currentContentWidth;
-      
+
       for (let i = 0; i < colWidths.length; i++) {
         colWidths[i] = Math.floor(colWidths[i] * expansionFactor);
       }
-      
+
       // Distribuir pixels restantes (devido aos arredondamentos)
       const newTotal = colWidths.reduce((s, w) => s + w, 0);
       const remainder = targetContentWidth - newTotal;
-      
+
       if (remainder > 0) {
         // Adicionar pixels extras nas primeiras colunas
         for (let i = 0; i < remainder && i < colWidths.length; i++) {
@@ -230,22 +223,11 @@ export function createTable(data: any[]): string {
 
   // Linhas de Dados
   stringMatrix.forEach((row, i) => {
-    // Alternar cores de linha seria legal, mas vamos manter simples e limpo
-    // Colorir valores específicos baseados no tipo original
+    // Usar formatter com modo compact para colorização em tabelas
     const visualRow = row.map((cellStr, colIndex) => {
       const originalVal = (rows[i] as any)[headers[colIndex]];
-
-      // Aplica cores do Vero nas células
-      if (typeof originalVal === "number") return ansi.vero.warn(cellStr);
-      if (typeof originalVal === "boolean") {
-        return originalVal
-          ? ansi.vero.success(cellStr)
-          : ansi.vero.error(cellStr);
-      }
-      if (originalVal === null || originalVal === undefined) {
-        return ansi.dim(cellStr);
-      }
-      return ansi.vero.info(cellStr); // Strings normais
+      // Usar formatter com depth limitado e modo compact para células
+      return format(originalVal, { depth: 0, maxDepth: 1, compact: true });
     });
 
     // Monta a linha manualmente para preservar os escapes ANSI das células
@@ -263,18 +245,17 @@ export function createTable(data: any[]): string {
           const cleanText = stringMatrix[i][idx];
           const truncated = cleanText.substring(0, maxCellWidth - 1) + "…";
 
-          // Re-aplicar a cor ao texto truncado
+          // Re-aplicar a cor ao texto truncado usando formatter em modo compact
           const originalVal = (rows[i] as any)[headers[idx]];
-          if (typeof originalVal === "number") {
-            displayCell = ansi.vero.warn(truncated);
-          } else if (typeof originalVal === "boolean") {
-            displayCell = originalVal
-              ? ansi.vero.success(truncated)
-              : ansi.vero.error(truncated);
-          } else if (originalVal === null || originalVal === undefined) {
+          displayCell = format(originalVal, {
+            depth: 0,
+            maxDepth: 1,
+            compact: true,
+          });
+
+          // Se o valor formatado for maior que o espaço, substituir com versão truncada simples
+          if (truncated.length < cleanText.length) {
             displayCell = ansi.dim(truncated);
-          } else {
-            displayCell = ansi.vero.info(truncated);
           }
 
           cleanLen = truncated.length;
