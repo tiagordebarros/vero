@@ -3,7 +3,7 @@ import { logger } from "../src/mod.ts";
 const randomBoolean = Boolean(Math.floor(Math.random() * 2));
 
 logger.hr();
-logger.info("Iniciando Smoke Test de Infraestrutura 🏗️");
+logger.info("Iniciando Smoke Test de Infraestrutura");
 logger.hr();
 
 const services = [
@@ -58,8 +58,8 @@ logger.table(report);
 
 const hasError = report.some((r: ReportEntry) => r.status === "CRITICAL");
 if (hasError) {
-  logger.error("❌ O deploy foi cancelado devido a falhas nos testes.");
+  logger.error("O deploy foi cancelado devido a falhas nos testes.");
   Deno.exit(1);
 } else {
-  logger.success("✅ Todos os sistemas operacionais. Deploy autorizado.");
+  logger.success("Todos os sistemas operacionais. Deploy autorizado.");
 }

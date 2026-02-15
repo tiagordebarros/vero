@@ -69,7 +69,7 @@ logger.h5("Debug Information");
 logger.h6("Internal Logs");
 
 logger.hr();
-logger.info("Analisando performance dos endpoints...");
+logger.info("Analisando performance dos endpoints");
 
 // Dados mockados perfeitos para tabela
 const endpoints = [
