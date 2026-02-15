@@ -150,13 +150,14 @@ class Vero {
     );
 
     // Conteúdo: Badge + Message
-    const badge = ansi.bold(colorFn(level.padEnd(2)));
+    const badge = ansi.bold(colorFn(level)); // Removido padEnd para ícone único
     const message = args
       .map((arg) => (typeof arg === "string" ? arg : format(arg)))
       .join(" ");
 
     // Dividir mensagem em múltiplas linhas se necessário
-    const fullContent = `${badge}  ${message}`;
+    // Alinhamento: 1 espaço antes do ícone (alinhado com timestamp) + 1 espaço após ícone (50% redução)
+    const fullContent = ` ${badge} ${message}`;
     const innerWidth = cardWidth; // Largura disponível para o conteúdo (total interno)
     const contentLines = this.wrapText(fullContent, innerWidth);
 
