@@ -87,12 +87,14 @@ function renderBar(label: string, ms: number, maxWidth?: number): string {
     const spacesCount = 2; // espaços entre elementos
     const availableForBar = maxWidth - baseLabelLength - timeLabelLength - spacesCount;
     
-    // Suprimir barra se não houver espaço suficiente (< 5 caracteres)
-    if (availableForBar < 5) {
+    // Cada bloco ■ ocupa 2 células visuais, então dividir por 2
+    // Suprimir barra se não houver espaço suficiente (< 10 células = 5 blocos)
+    if (availableForBar < 10) {
       return `${ansi.bold(ansi.white(labelPadded))} ${timeLabel}`;
     }
     
-    barWidth = Math.min(availableForBar, BAR_WIDTH);
+    // Calcular número de blocos que cabem (cada bloco = 2 células)
+    barWidth = Math.min(Math.floor(availableForBar / 2), BAR_WIDTH);
   }
 
   // 4. Calcular preenchimento (escala logarítmica suave para caber na barra)
