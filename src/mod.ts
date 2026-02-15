@@ -40,6 +40,25 @@ function getTimestamp(): string {
 }
 
 /**
+ * Retorna o timestamp sem formatação ANSI (para uso em headers de card)
+ */
+function getTimestampPlain(): string {
+  const d = new Date();
+  const time = d.toLocaleTimeString("pt-BR", { hour12: false });
+  const ms = d.getMilliseconds().toString().padStart(3, "0");
+  return `${time}.${ms}`;
+}
+
+/**
+ * Configuração visual dos cards (bordas Unicode arredondadas)
+ */
+const CARD_CHARS = {
+  top: { left: "╭", right: "╮", h: "─" },
+  bottom: { left: "╰", right: "╯", h: "─" },
+  vertical: "│",
+};
+
+/**
  * Classe principal do Vero
  */
 class Vero {
@@ -58,6 +77,24 @@ class Vero {
     args: unknown[],
     stream: "stdout" | "stderr" = "stdout",
   ) {
+    const terminalWidth = getTerminalWidth();
+    const SMALL_SCREEN_THRESHOLD = 60;
+
+    // Detectar se deve usar card view (telas pequenas + timestamp habilitado)
+    const useCardView = this.config.showTimestamp && terminalWidth < SMALL_SCREEN_THRESHOLD;
+
+    if (useCardView) {
+      // MODO CARD: Renderizar em box com timestamp no header
+      const output = this.createLogCard(level, colorFn, args);
+      if (stream === "stderr") {
+        console.error(output);
+      } else {
+        console.log(output);
+      }
+      return;
+    }
+
+    // MODO NORMAL: Renderização linear tradicional
     const parts: string[] = [];
 
     // 1. Timestamp
@@ -89,6 +126,79 @@ class Vero {
     } else {
       console.log(finalLog);
     }
+  }
+
+  /**
+   * Cria um card visual para o log (usado em telas pequenas)
+   */
+  private createLogCard(
+    level: string,
+    colorFn: (t: string) => string,
+    args: unknown[],
+  ): string {
+    const lines: string[] = [];
+    const terminalWidth = getTerminalWidth();
+    const cardWidth = Math.min(terminalWidth - 4, 60);
+    const contentWidth = cardWidth; // Largura total do conteúdo (incluindo bordas)
+
+    // Header: Timestamp
+    const timestamp = getTimestampPlain();
+    const headerContent = ` ${timestamp} `;
+    const headerLineWidth = cardWidth - headerContent.length; // Espaço restante após timestamp
+    lines.push(
+      ansi.gray(`${CARD_CHARS.top.left}${headerContent}${CARD_CHARS.top.h.repeat(Math.max(0, headerLineWidth))}${CARD_CHARS.top.right}`)
+    );
+
+    // Conteúdo: Badge + Message
+    const badge = ansi.bold(colorFn(level.padEnd(2)));
+    const message = args
+      .map((arg) => (typeof arg === "string" ? arg : format(arg)))
+      .join(" ");
+
+    // Dividir mensagem em múltiplas linhas se necessário
+    const fullContent = `${badge}  ${message}`;
+    const innerWidth = cardWidth; // Largura disponível para o conteúdo (total interno)
+    const contentLines = this.wrapText(fullContent, innerWidth);
+
+    contentLines.forEach((line) => {
+      // Calcular padding considerando códigos ANSI
+      const cleanLine = line.replace(/\x1b\[[0-9;]*m/g, ""); // Remove ANSI codes
+      const padding = " ".repeat(Math.max(0, innerWidth - cleanLine.length));
+      lines.push(`${ansi.gray(CARD_CHARS.vertical)}${line}${padding}${ansi.gray(CARD_CHARS.vertical)}`);
+    });
+
+    // Footer
+    lines.push(
+      ansi.gray(`${CARD_CHARS.bottom.left}${CARD_CHARS.bottom.h.repeat(cardWidth)}${CARD_CHARS.bottom.right}`)
+    );
+
+    return lines.join("\n");
+  }
+
+  /**
+   * Quebra texto em múltiplas linhas respeitando a largura máxima
+   * Preserva quebras de linha existentes (como em objetos formatados)
+   */
+  private wrapText(text: string, maxWidth: number): string[] {
+    // Primeiro, separar por quebras de linha existentes
+    const existingLines = text.split("\n");
+    const result: string[] = [];
+
+    for (const line of existingLines) {
+      // Remove códigos ANSI para calcular tamanho real
+      const cleanLine = line.replace(/\x1b\[[0-9;]*m/g, "");
+      
+      if (cleanLine.length <= maxWidth) {
+        result.push(line); // Preserva a linha original com ANSI
+      } else {
+        // Linha muito longa - truncar mas mantendo a linha original até onde couber
+        // Por simplicidade, truncar a versão limpa e adicionar "..."
+        const truncated = cleanLine.slice(0, maxWidth - 3) + "...";
+        result.push(truncated); // TODO: Implementar truncamento preservando ANSI
+      }
+    }
+
+    return result;
   }
 
   /**
@@ -233,17 +343,30 @@ class Vero {
    * Para o cronómetro e imprime a barra de performance.
    */
   timeEnd(label: string) {
-    const visualization = endTimer(label);
+    const terminalWidth = getTerminalWidth();
+    const SMALL_SCREEN_THRESHOLD = 60;
+    const useCardView = this.config.showTimestamp && terminalWidth < SMALL_SCREEN_THRESHOLD;
+    
+    // Calcular largura máxima para a barra em card view
+    const cardWidth = Math.min(terminalWidth - 4, 60);
+    const innerWidth = cardWidth;
+    const iconWidth = 4; // "⏱   "
+    const maxBarWidth = useCardView ? innerWidth - iconWidth : undefined;
+    
+    const visualization = endTimer(label, maxBarWidth);
     if (!visualization) {
       this.warn(`Cronómetro '${label}' não encontrado.`);
       return;
     }
 
-    // Usamos console.log direto para evitar timestamp duplo,
-    // ou usamos o this.print se quisermos manter o padrão.
-    // Vamos usar um ícone de relógio para ficar bonito.
     const icon = this.config.useIcons ? "⏱" : "TIME";
-    console.log(`${getTimestamp()}  ${icon}   ${visualization}`);
+
+    if (useCardView) {
+      const output = this.createLogCard(icon, ansi.vero.warn, [visualization]);
+      console.log(output);
+    } else {
+      console.log(`${getTimestamp()}  ${icon}   ${visualization}`);
+    }
   }
 
   /**
@@ -352,7 +475,17 @@ class Vero {
    * Logs the time elapsed since a timer was started, without ending it
    */
   timeLog(label: string, ...args: unknown[]) {
-    const visualization = logTimer(label);
+    const terminalWidth = getTerminalWidth();
+    const SMALL_SCREEN_THRESHOLD = 60;
+    const useCardView = this.config.showTimestamp && terminalWidth < SMALL_SCREEN_THRESHOLD;
+    
+    // Calcular largura máxima para a barra em card view
+    const cardWidth = Math.min(terminalWidth - 4, 60);
+    const innerWidth = cardWidth;
+    const iconWidth = 4; // "⏱   "
+    const maxBarWidth = useCardView ? innerWidth - iconWidth : undefined;
+    
+    const visualization = logTimer(label, maxBarWidth);
     if (!visualization) {
       this.warn(`Timer '${label}' not found.`);
       return;
@@ -363,7 +496,15 @@ class Vero {
       ? " " + args.map((arg) => (typeof arg === "string" ? arg : format(arg)))
         .join(" ")
       : "";
-    console.log(`${getTimestamp()}  ${icon}   ${visualization}${extraMessage}`);
+    
+    const fullMessage = `${visualization}${extraMessage}`;
+
+    if (useCardView) {
+      const output = this.createLogCard(icon, ansi.vero.warn, [fullMessage]);
+      console.log(output);
+    } else {
+      console.log(`${getTimestamp()}  ${icon}   ${fullMessage}`);
+    }
   }
 
   /**
@@ -373,16 +514,36 @@ class Vero {
     if (!condition) {
       const icon = this.config.useIcons ? "✖" : "ASSERT";
       const message = args.length > 0 ? args : ["Assertion failed"];
-      const coloredArgs = message.map((arg) =>
-        typeof arg === "string" ? ansi.vero.error(arg) : arg
-      );
-      this.print(icon, ansi.vero.error, coloredArgs, "stderr");
-
+      
       // Get stack trace for assertion
       const stack = new Error().stack;
+      let stackLines: string[] = [];
       if (stack) {
-        const lines = stack.split("\n").slice(2).map((lines) => lines.trim()); // Remove Error and assert call
-        console.error(ansi.dim(ansi.gray(lines.join("\n"))));
+        stackLines = stack.split("\n").slice(2).map((line) => line.trim()); // Remove Error and assert call
+      }
+
+      // Combinar mensagem com stack trace para card view
+      const terminalWidth = getTerminalWidth();
+      const SMALL_SCREEN_THRESHOLD = 60;
+      const useCardView = this.config.showTimestamp && terminalWidth < SMALL_SCREEN_THRESHOLD;
+
+      if (useCardView && stackLines.length > 0) {
+        // Incluir stack trace no card
+        const allArgs = [...message, "\n" + ansi.dim(ansi.gray(stackLines.join("\n")))];
+        const coloredArgs = allArgs.map((arg) =>
+          typeof arg === "string" ? ansi.vero.error(arg) : arg
+        );
+        this.print(icon, ansi.vero.error, coloredArgs, "stderr");
+      } else {
+        // Modo normal
+        const coloredArgs = message.map((arg) =>
+          typeof arg === "string" ? ansi.vero.error(arg) : arg
+        );
+        this.print(icon, ansi.vero.error, coloredArgs, "stderr");
+
+        if (stackLines.length > 0) {
+          console.error(ansi.dim(ansi.gray(stackLines.join("\n"))));
+        }
       }
     }
   }
@@ -461,13 +622,30 @@ class Vero {
   trace(...args: unknown[]) {
     const icon = this.config.useIcons ? "🔍" : "TRACE";
     const message = args.length > 0 ? args : ["Trace"];
-    this.print(icon, ansi.vero.warn, message);
 
     // Get and display stack trace
     const stack = new Error().stack;
+    let stackLines: string[] = [];
     if (stack) {
-      const lines = stack.split("\n").slice(2).map((line) => line.trim()); // Remove Error and trace call
-      console.log(ansi.dim(ansi.gray(lines.join("\n"))));
+      stackLines = stack.split("\n").slice(2).map((line) => line.trim()); // Remove Error and trace call
+    }
+
+    // Combinar mensagem com stack trace para card view
+    const terminalWidth = getTerminalWidth();
+    const SMALL_SCREEN_THRESHOLD = 60;
+    const useCardView = this.config.showTimestamp && terminalWidth < SMALL_SCREEN_THRESHOLD;
+
+    if (useCardView && stackLines.length > 0) {
+      // Incluir stack trace no card
+      const allArgs = [...message, "\n" + ansi.dim(ansi.gray(stackLines.join("\n")))];
+      this.print(icon, ansi.vero.warn, allArgs);
+    } else {
+      // Modo normal
+      this.print(icon, ansi.vero.warn, message);
+
+      if (stackLines.length > 0) {
+        console.log(ansi.dim(ansi.gray(stackLines.join("\n"))));
+      }
     }
   }
 }
