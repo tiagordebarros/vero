@@ -212,7 +212,8 @@ export function createTable(data: any[]): string {
       const cleanCell = ` ${displayCell}${padding}`;
       return colorFn ? colorFn(cleanCell) : cleanCell;
     });
-    return `${CHARS.vertical}${content.join(CHARS.vertical)}${CHARS.vertical}`;
+    const separator = ansi.gray(CHARS.vertical); // Separadores sempre em cinza
+    return `${separator}${content.join(separator)}${separator}`;
   };
 
   // 6. Renderização Final
