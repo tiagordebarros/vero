@@ -71,6 +71,26 @@ export const vero = {
   border: rgb(108, 108, 108),
 };
 
+// --- CORES HTTP (para desenvolvimento web) ---
+export const http = {
+  // Verbos HTTP seguros (GET, HEAD, OPTIONS)
+  safe: rgb(135, 255, 175), // Verde menta - apenas leitura
+  // Verbos HTTP de mutação (POST, PUT, PATCH)
+  mutation: rgb(255, 215, 135), // Laranja pêssego - modifica dados
+  // Verbos HTTP de deleção (DELETE)
+  delete: rgb(255, 175, 215), // Rosa pastel - operação destrutiva
+  // Status 1xx (Informacional)
+  info: rgb(175, 135, 255), // Roxo lavanda - processamento
+  // Status 2xx (Sucesso)
+  success: rgb(135, 255, 175), // Verde menta
+  // Status 3xx (Redirecionamento)
+  redirect: rgb(135, 215, 255), // Azul céu
+  // Status 4xx (Erro do cliente)
+  clientError: rgb(255, 215, 135), // Laranja pêssego
+  // Status 5xx (Erro do servidor)
+  serverError: rgb(255, 175, 215), // Rosa pastel
+};
+
 /**
  * Utilitário para converter Hex para RGB (caso queira adicionar mais cores dinamicamente)
  */
