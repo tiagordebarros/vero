@@ -207,13 +207,13 @@ class Vero {
     let lastAnsi = "";
     let visualIndex = 0;
     let i = 0;
-    
+
     while (i < text.length && visualIndex <= visualPosition) {
       // Detectar código ANSI
       if (text.substring(i).match(/^\x1b\[[0-9;]*m/)) {
         const ansiMatch = text.substring(i).match(/^\x1b\[[0-9;]*m/)!;
         const code = ansiMatch[0];
-        
+
         // Reset code limpa a cor ativa
         if (code === "\x1b[0m") {
           lastAnsi = "";
@@ -221,16 +221,16 @@ class Vero {
           // Guardar último código de cor/estilo
           lastAnsi = code;
         }
-        
+
         i += code.length;
         continue;
       }
-      
+
       // Caractere normal
       visualIndex++;
       i++;
     }
-    
+
     return lastAnsi;
   }
 
@@ -241,11 +241,11 @@ class Vero {
     const clean = this.stripAnsi(text);
     const targetStart = start;
     const targetEnd = end ?? clean.length;
-    
+
     let result = "";
     let visualIndex = 0;
     let i = 0;
-    
+
     while (i < text.length) {
       // Detectar código ANSI
       if (text.substring(i).match(/^\x1b\[[0-9;]*m/)) {
@@ -257,17 +257,17 @@ class Vero {
         i += ansiMatch[0].length;
         continue;
       }
-      
+
       // Caractere normal
       if (visualIndex >= targetStart && visualIndex < targetEnd) {
         result += text[i];
       }
       visualIndex++;
       i++;
-      
+
       if (visualIndex >= targetEnd) break;
     }
-    
+
     return result;
   }
 
@@ -341,12 +341,12 @@ class Vero {
           if (remaining <= width) {
             // Última parte - pega do offset até o final
             let chunk = this.sliceWithAnsi(line, offset);
-            
+
             // Reaplicar cor ativa se não for primeira parte e não for stack trace
             if (!isFirstPart && i === 0) {
               const cleanChunk = this.stripAnsi(chunk);
               const isStackTrace = cleanChunk.trimStart().startsWith("at ");
-              
+
               if (!isStackTrace) {
                 const activeColor = this.getActiveAnsiAt(line, offset);
                 if (activeColor) {
@@ -354,7 +354,7 @@ class Vero {
                 }
               }
             }
-            
+
             result.push(prefix + chunk);
             break;
           }
@@ -368,12 +368,12 @@ class Vero {
 
           // Extrai chunk com ANSI preservado
           let chunk = this.sliceWithAnsi(line, offset, breakPoint);
-          
+
           // Reaplicar cor ativa nas continuações (exceto stack traces)
           if (!isFirstPart && i === 0) {
             const cleanChunk = this.stripAnsi(chunk);
             const isStackTrace = cleanChunk.trimStart().startsWith("at ");
-            
+
             if (!isStackTrace) {
               const activeColor = this.getActiveAnsiAt(line, offset);
               if (activeColor) {
@@ -381,14 +381,16 @@ class Vero {
               }
             }
           }
-          
+
           result.push(prefix + chunk);
-          
+
           // Pular espaços no início da próxima parte
-          while (breakPoint < cleanLine.length && cleanLine[breakPoint] === " ") {
+          while (
+            breakPoint < cleanLine.length && cleanLine[breakPoint] === " "
+          ) {
             breakPoint++;
           }
-          
+
           offset = breakPoint;
           isFirstPart = false;
         }
