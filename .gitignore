@@ -73,3 +73,10 @@ build/
 # Temp Files
 # -----------------------------------------------------------------------------
 specs/
+examples/*
+!examples/1-demo-vanilla.ts
+!examples/1-demo-vero.ts
+!examples/2-demo-all-methods-vanilla.ts
+!examples/2-demo-all-methods-vero.ts
+!examples/3-script-vanilla.ts
+!examples/3-script-vero.ts
