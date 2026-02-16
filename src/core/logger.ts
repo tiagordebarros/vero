@@ -605,16 +605,16 @@ export class Vero {
   }
 
   /**
-   * Displays GitHub Copilot CLI Hackathon 2026 branding.
+   * Displays GitHub Copilot CLI Challenge 2026 branding.
    *
-   * Special method for the hackathon submission. Shows branded header
+   * Special method for the challenge submission. Shows branded header
    * with GitHub and Copilot colors.
    *
    * @example
    * ```ts
    * logger.copilot();
    * // ────────────────────────────────────
-   * //   GitHub Copilot CLI Hackathon 2026
+   * //   GitHub Copilot CLI Challenge 2026
    * //   Generated with AI assistance,
    * //   refined by human craft.
    * // ────────────────────────────────────
@@ -630,7 +630,7 @@ export class Vero {
         ghColor("GitHub") +
         " " +
         ansi.bold(copilotColor("Copilot")) +
-        ansi.dim(ansi.gray(" CLI Hackathon 2026")),
+        ansi.dim(ansi.gray(" CLI Challenge 2026")),
     );
 
     console.log(
