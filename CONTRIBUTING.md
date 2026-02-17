@@ -1,190 +1,231 @@
-Guia de Contribuição e Arquitetura do Vero
+# Contributing to Vero
 
-Obrigado por considerar contribuir para o Vero!
+First of all, thank you for considering contributing to **Vero** ❤️
 
-Para manter o Vero leve, rápido e bonito, seguimos uma filosofia de arquitetura
-rígida. Por favor, leia este documento antes de abrir um Pull Request. PRs que
-violem os princípios abaixo serão convidados a serem refatorados.
+We aim to keep Vero lightweight, fast, and elegant.\
+To achieve that, we follow a strict architectural philosophy.
 
-🏛️ A Filosofia do Vero
+Please read this document carefully before opening a Pull Request.\
+Pull Requests that violate the principles described here may be requested to
+refactor.
 
-O Vero resolve o paradoxo entre Simplicidade e Poder através de uma arquitetura
-modular.
+---
 
-1. The Core Law (A Lei do Núcleo)
+# Table of Contents
 
-O Core do Vero deve permanecer mínimo, agnóstico e livre de dependências de
-runtime.
+- [Architecture Philosophy](#architecture-philosophy)
+- [Core Principles](#core-principles)
+- [Configuration](#configuration)
+- [Plugins & Extensibility](#plugins--extensibility)
+- [Git Workflow](#git-workflow)
+- [Versioning](#versioning)
+- [Conventional Commits](#conventional-commits)
+- [Pull Request Checklist](#pull-request-checklist)
 
-O que pertence ao Core:
+---
 
-Lógica de renderização básica (o "motor" visual).
+# Architecture Philosophy
 
-Wrapper seguro do console nativo.
+Vero resolves the paradox between **Simplicity and Power** through modular
+architecture.
 
-Sistema de carregamento de Configuração e Plugins.
+We prioritize:
 
-Tratamento de erros fundamentais.
+- Minimalism
+- Runtime independence
+- Composability
+- Zero unnecessary dependencies
 
-O que NÃO pertence ao Core:
+---
 
-Integrações com serviços terceiros (Slack, Datadog, Sentry, etc).
+# Core Principles
 
-Temas complexos adicionais (exceto o Default).
+## 1. The Core Law
 
-Formatadores de dados específicos (ex: formatador de XML ou SQL complexo).
+The **Vero Core must remain minimal, runtime-agnostic, and dependency-free**.
 
-A Regra de Ouro da Dependência: O Core NÃO deve conter dependências de produção
-(dependencies). Se a sua funcionalidade exige instalar um pacote externo para
-funcionar em tempo de execução, ela obrigatoriamente deve ser um Plugin.
+### What belongs in the Core
 
-2. Configuração: JSONC Opcional
+- Basic rendering engine (visual engine)
+- Safe wrapper around native console
+- Configuration and plugin loading system
+- Fundamental error handling
 
-Adotamos o padrão "Zero Configuração, mas Totalmente Configurável".
+### What does NOT belong in the Core
 
-O Vero funciona imediatamente sem nenhum arquivo de configuração.
+- Third-party integrations (Slack, Datadog, Sentry, etc.)
+- Additional complex themes (except Default)
+- Heavy data formatters (e.g., complex XML or SQL formatters)
 
-A personalização é feita através de um arquivo vero.config.jsonc na raiz do
-projeto.
+---
 
-Utilizamos JSONC (JSON com Comentários) para permitir documentação inline.
+## The Golden Rule of Dependencies
 
-Exemplo de estrutura aceita:
+> The Core MUST NOT include production dependencies (`dependencies`).
 
-{ "theme": "dracula", // Tema visual "timestamp": false, // Ocultar hora
-"plugins": [ "vero-plugin-sentry", // Plugins externos com dependências próprias
-"vero-plugin-sql-formatter" ] }
+If a feature requires installing an external runtime package, it **must be
+implemented as a Plugin**.
 
-3. Plugins e Extensibilidade
+No exceptions.
 
-Preferimos Composição. O Vero expõe uma API simples para plugins manipularem a
-entrada (logs) antes da saída (renderização).
+---
 
-Se você quer adicionar uma nova funcionalidade:
+# Configuration
 
-Verifique se ela pode ser feita via Plugin.
+Vero follows the principle:
 
-Se sim, crie um pacote separado (ex: @tiagordebarros/vero-plugin-xyz) ou
-proponha um plugin oficial na pasta /plugins.
+> Zero Configuration, Fully Configurable
 
-🌳 Padrões de Git Flow (Branches e Commits)
+- Vero works immediately without any configuration file.
+- Customization is done through a `vero.config.jsonc` file at the project root.
+- We use **JSONC (JSON with Comments)** to allow inline documentation.
 
-Para manter a organização e permitir automação, somos rigorosos com a
-nomenclatura de branches e commits.
+## Example
 
-Nomeação de Branches (Branch Naming)
+```jsonc
+{
+  "theme": "dracula",
+  "timestamp": false,
+  "plugins": [
+    "vero-plugin-sentry",
+    "vero-plugin-sql-formatter"
+  ]
+}
+```
 
-Antes de criar um PR, crie uma branch que descreva o trabalho que está sendo
-feito. Utilize o mesmo prefixo do Conventional Commits, sempre em inglês e
-kebab-case.
+---
 
-Formato:
+# Plugins & Extensibility
+
+We prefer **composition over expansion of the Core**.
+
+Vero exposes a simple API that allows plugins to manipulate input (logs) before
+rendering.
+
+If you want to introduce new functionality:
+
+1. Check if it can be implemented as a Plugin.
+2. If yes:
+   - Create a separate package (e.g., `@tiagordebarros/vero-plugin-xyz`)
+   - Or propose an official plugin under `/plugins`
+
+Core changes are reserved only for structural or architectural improvements.
+
+---
+
+# Git Workflow
+
+We strictly follow naming conventions to maintain organization and enable
+automation.
+
+## Branch Naming
+
+Before opening a PR, create a branch describing your change.
+
+Format:
+
+```text
 <type>/<short-description>
+```
 
-Tipos aceitos (mesmos do commit):
+- English only
+- kebab-case only
 
-feat/ (Nova funcionalidade)
+### Allowed types
 
-fix/ (Correção de bug)
+- `feat` — New feature
+- `fix` — Bug fix
+- `docs` — Documentation
+- `chore` — Maintenance / dependencies
+- `refactor` — Code refactoring
+- `test` — Tests
 
-docs/ (Documentação)
+### Examples
 
-chore/ (Manutenção, dependências)
+```text
+feat/add-json-parser
+fix/ansi-color-windows
+docs/update-contributing-guide
+```
 
-refactor/ (Refatoração de código)
+Invalid examples:
 
-test/ (Testes)
+```text
+minha-nova-feature
+feat/add_json_parser
+```
 
-Exemplos:
+---
 
-✅ feat/add-json-parser
+# Versioning
 
-✅ fix/ansi-color-windows
+Vero follows **Semantic Versioning (SemVer)**.
 
-✅ docs/update-contributing-guide
+Format:
 
-❌ minha-nova-feature (Sem tipo e em português)
+```
+MAJOR.MINOR.PATCH
+```
 
-❌ feat/add_json_parser (Use kebab-case, não snake_case)
+- MAJOR → Breaking API changes
+- MINOR → Backward-compatible features
+- PATCH → Bug fixes
 
-Semantic Versioning (SemVer)
+---
 
-O número da versão do Vero (ex: 1.2.4) segue a regra MAJOR.MINOR.PATCH:
+# Conventional Commits
 
-MAJOR (1.x.x): Mudanças incompatíveis na API.
+All commits must follow the **Conventional Commits** specification.
 
-MINOR (x.2.x): Novas funcionalidades que mantêm compatibilidade.
+Structure:
 
-PATCH (x.x.4): Correções de bugs sem adicionar features.
-
-Conventional Commits
-
-Todos os commits devem seguir a especificação Conventional Commits. Isso permite
-que nossas ferramentas leiam o histórico e gerem o Changelog automaticamente.
-Recomendamos fortemente escrever as mensagens de commit em inglês.
-
-A estrutura completa de um commit é:
-
+```text
 <type>[optional scope]: <description>
 
 [optional body]
 
 [optional footer(s)]
+```
 
-Exemplos de formatos básicos:
+## Basic Examples
 
-feat: add native support for Deno (Gera uma release MINOR)
-
-fix: correct warning alert color (Gera uma release PATCH)
-
-docs: update readme with new flag (Não gera release)
-
-chore: update dev dependencies (Não gera release)
-
+```text
+feat: add native support for Deno
+fix: correct warning alert color
+docs: update readme with new flag
+chore: update dev dependencies
 refactor: improve parser performance
-
 test: add unit tests for logger class
+```
 
-Exemplo Completo (com Breaking Change):
+## Breaking Change Example
 
+```text
 feat(core)!: redesign plugin API architecture
 
-This commit completely overhauls the way plugins are registered in the core
-logger. The previous method `logger.add()` has been removed in favor of
-`logger.use()`.
+This commit completely overhauls the way plugins are registered.
+The previous method `logger.add()` was removed in favor of `logger.use()`.
 
-BREAKING CHANGE: The `add()` method is no longer available. All existing plugins
-must migrate to the new `use()` method. Closes #123
+BREAKING CHANGE: The `add()` method is no longer available.
+All plugins must migrate to `use()`.
+Closes #123
+```
 
-✅ Checklist para Pull Requests
+---
 
-Antes de submeter, verifique:
+# Pull Request Checklist
 
-$$$$
+Before submitting your PR, confirm:
 
-Minha branch segue o padrão type/description em inglês?
+- [ ] My branch follows `<type>/<description>` format
+- [ ] My change does not increase Core bundle size unnecessarily
+- [ ] I did NOT add production dependencies to the Core
+- [ ] The code respects `vero.config.jsonc`
+- [ ] Compatibility with native console is preserved
+- [ ] Commits follow Conventional Commits
 
-$$$$
+---
 
-Minha alteração aumenta o tamanho do bundle principal (Core)? Se sim, é
-justificado?
-
-$$$$
-
-CRÍTICO: Adicionei novas dependências ao projeto principal? (Isso resultará em
-rejeição do PR).
-
-$$$$
-
-O código respeita a configuração definida no vero.config.jsonc (se aplicável)?
-
-$$$$
-
-Mantive a compatibilidade com o console nativo?
-
-$$$$
-
-Meus commits seguem o padrão Conventional Commits?
-
-"A perfeição não é alcançada quando não há mais nada a acrescentar, mas quando
-não há mais nada a retirar." — Antoine de Saint-Exupéry
+> “Perfection is achieved, not when there is nothing more to add,\
+> but when there is nothing left to take away.”\
+> — Antoine de Saint-Exupéry
