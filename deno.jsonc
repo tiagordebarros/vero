@@ -9,7 +9,13 @@
   },
   "exports": "./src/mod.ts",
   "publish": {
-    "include": ["LICENSE", "README.md", "src/**/*.ts", "deno.jsonc"]
+    "include": [
+      "LICENSE",
+      "README.md",
+      "CITATION.cff",
+      "src/**/*.ts",
+      "deno.jsonc"
+    ]
   },
   "fmt": {
     "useTabs": false,
