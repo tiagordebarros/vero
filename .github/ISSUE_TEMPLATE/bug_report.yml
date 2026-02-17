@@ -1,0 +1,32 @@
+name: 🐛 Bug Report
+description: Report a reproducible issue
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: textarea
+    attributes:
+      label: Describe the Bug
+      description: Clear and concise description.
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: Steps to Reproduce
+      description: Provide reproducible steps.
+    validations:
+      required: true
+
+  - type: input
+    attributes:
+      label: Runtime
+      description: Deno, Node.js, Bun, Browser
+    validations:
+      required: true
+
+  - type: input
+    attributes:
+      label: Version
+      description: Vero version
+    validations:
+      required: true
