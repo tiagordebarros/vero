@@ -1,15 +1,79 @@
-# 🔮 Vero — _See the Truth in Your Code_
+![Vero Cover](assets/images/vero-cover.gif)
 
 <div align="center">
 
-<img src="https://img.shields.io/badge/ORCID-0000--0001--6823--3562-A6CE39?logo=orcid&logoColor=white" />
-<img src="https://img.shields.io/github/license/tiagordebarros/vero" />
-<img src="https://img.shields.io/github/actions/workflow/status/tiagordebarros/vero/ci.yml" />
-<img src="https://img.shields.io/github/stars/tiagordebarros/vero?style=social" />
-<img src="https://img.shields.io/npm/dt/@tiagordebarros/vero" />
-<img src="https://img.shields.io/badge/dependencies-0-brightgreen" />
-<img src="https://img.shields.io/badge/typescript-100%25-blue" />
-<img src="https://img.shields.io/badge/runtime-Deno%20%7C%20Node%20%7C%20Bun%20%7C%20Browser-black" />
+# Vero — _See the Truth in Your Code_
+
+</div>
+
+<div align="center">
+
+<!-- 🔮 Project Identity -->
+
+<!-- <img src="https://img.shields.io/badge/Vero-Visual%20Logger-8b5cf6?style=for-the-badge&logo=gem&logoColor=white" alt="Vero - Visual Logger" /> -->
+<img src="https://img.shields.io/badge/Vero-Visual%20Logger-8b5cf6?logo=gem&logoColor=white" alt="Vero - Visual Logger" />
+<img src="https://img.shields.io/badge/Author-Tiago%20Ribeiro%20de%20Barros-0A66C2?logo=github&logoColor=white" alt="Author" />
+
+<!-- 📦 JSR (Primary Distribution Platform) -->
+
+<a href="https://jsr.io/@tiagordebarros/vero">
+<img src="https://jsr.io/badges/%40tiagordebarros/vero" alt="JSR Version" />
+</a>
+
+<a href="https://jsr.io/@tiagordebarros/vero">
+<img src="https://jsr.io/badges/%40tiagordebarros/vero/score" alt="JSR Score" />
+</a>
+
+<!-- 🚦 CI / Build Health -->
+
+<!-- <a href="https://github.com/tiagordebarros/vero/actions">
+<img src="https://github.com/tiagordebarros/vero/actions/workflows/ci.yml/badge.svg" alt="Build Status" />
+</a> -->
+
+<!-- 📜 License -->
+
+<a href="https://github.com/tiagordebarros/vero/blob/main/LICENSE">
+<img src="https://img.shields.io/github/license/tiagordebarros/vero?logo=open-source-initiative&logoColor=white" alt="MIT License" />
+</a>
+
+<!-- 🌍 Open Source Status -->
+
+<img src="https://img.shields.io/badge/Open%20Source-Yes-3DA639?logo=open-source-initiative&logoColor=white" alt="Open Source" />
+
+<!-- 💰 GitHub Sponsors -->
+
+<a href="https://github.com/sponsors/tiagordebarros">
+<img src="https://img.shields.io/badge/Sponsor-GitHub%20Sponsors-EA4AAA?logo=githubsponsors&logoColor=white" alt="GitHub Sponsors" />
+</a>
+
+<!-- 🛡 Core Philosophy -->
+
+<img src="https://img.shields.io/badge/Dependencies-0-success?logo=dependabot&logoColor=white" alt="Zero Dependencies" />
+<img src="https://img.shields.io/badge/Web%20Standards-First-2563eb?logo=html5&logoColor=white" alt="Web Standards First" />
+
+<!-- 🧠 Runtime Support -->
+
+<img src="https://img.shields.io/badge/Runtime-Deno%20%7C%20Node%20%7C%20Bun%20%7C%20Browser-6366f1?logo=javascript&logoColor=white" alt="Runtime Support" />
+
+<!-- 🟦 Language -->
+
+<img src="https://img.shields.io/badge/Written%20in-TypeScript-3178C6?logo=typescript&logoColor=white" alt="Written in TypeScript" />
+
+<!-- 📏 Code Standards -->
+
+<a href="https://www.conventionalcommits.org/">
+<img src="https://img.shields.io/badge/Conventional%20Commits-1.0.0-FE5196?logo=conventionalcommits&logoColor=white" alt="Conventional Commits" />
+</a>
+
+<a href="https://github.com/tiagordebarros/vero/blob/main/deno.jsonc">
+<img src="https://img.shields.io/badge/Code%20Style-Standard-brightgreen?logo=eslint&logoColor=white" alt="Standard Code Style" />
+</a>
+
+<!-- 🎓 Academic Identity -->
+
+<a href="https://orcid.org/0000-0001-6823-3562">
+<img src="https://img.shields.io/badge/ORCID-0000--0001--6823--3562-A6CE39?logo=orcid&logoColor=white" alt="ORCID" />
+</a>
 
 </div>
 
@@ -64,21 +128,19 @@ Vero is a **visual debugger for development**.
 
 ---
 
-## 📸 Preview
-
-![Vero Cover](assets/images/vero-cover.jpg)
-
----
-
 ## 🚀 Installation
 
 ```bash
 # Deno
 deno add @tiagordebarros/vero
+```
 
+```bash
 # Node
 npx jsr add @tiagordebarros/vero
+```
 
+```bash
 # Bun
 bunx jsr add @tiagordebarros/vero
 ```
@@ -109,7 +171,9 @@ const user = {
 logger.info(user);
 ```
 
-![Smart Object Formatting](assets/images/smart-object-formatting.jpg)
+<div align="center">
+  <img src="assets/images/smart-object-formatting.png" width="700" />
+</div>
 
 ✔ Circular-safe\
 ✔ Depth-limited\
@@ -127,8 +191,10 @@ logger.table([
 ]);
 ```
 
-![Large Table Responsive](assets/images/large-table-responsive.png)
-![Large Table Responsive Card](assets/images/large-table-responsive-card.png)
+<div align="center">
+  <img src="assets/images/large-table-responsive.png" width="48%" />
+  <img src="assets/images/large-table-responsive-card.png" width="48%" />
+</div>
 
 - Two-pass column width calculation
 - Unicode box drawing
@@ -157,8 +223,10 @@ Color-coded thresholds:
 - 🟡 < 200ms
 - 🔴 > 200ms
 
-![Visual Performance Timing Desktop](assets/images/visual-performance-timing-desktop.png)
-![Visual Performance Timing Mobile](assets/images/visual-performance-timing-mobile.png)
+<div align="center">
+  <img src="assets/images/visual-performance-timing-desktop.png" width="48%" />
+  <img src="assets/images/visual-performance-timing-mobile.png" width="48%" />
+</div>
 
 ---
 
@@ -222,6 +290,7 @@ Vero guarantees:
 - [ ] Theme system
 - [ ] Extended browser styling
 - [ ] Terminal charts
+- [ ] Implement OSC 8
 - [ ] Coverage automation
 
 ---
@@ -254,6 +323,8 @@ See **FUNDING.yml** for available options.
 MIT © 2026\
 Tiago Ribeiro de Barros\
 ORCID: https://orcid.org/0000-0001-6823-3562
+
+See **LICENSE** for more details.
 
 ---
 
