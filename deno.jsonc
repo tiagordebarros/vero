@@ -2,7 +2,7 @@
   "name": "@tiagordebarros/vero",
   "description": "Beautiful and simple visual debugger.",
   "author": "Tiago Ribeiro de Barros <tiago@parceirosdenegocio.com>",
-  "version": "0.1.0",
+  "version": "0.1.0-alpha.1",
   "license": "MIT",
   "tasks": {
     "lint": "deno lint"
