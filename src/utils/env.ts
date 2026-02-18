@@ -23,9 +23,6 @@ interface BrowserWindow {
   innerHeight: number;
 }
 
-declare const Deno: DenoNamespace;
-declare const process: ProcessNamespace;
-
 /**
  * Checks if running in Deno environment.
  *
@@ -55,8 +52,10 @@ export function isDeno(): boolean {
  * ```
  */
 export function isNode(): boolean {
-  return typeof globalThis.process !== "undefined" &&
-    typeof (globalThis.process as ProcessNamespace).env !== "undefined";
+  return typeof (globalThis as Record<string, unknown>).process !==
+      "undefined" &&
+    typeof ((globalThis as Record<string, unknown>).process as ProcessNamespace)
+        .env !== "undefined";
 }
 
 /**
@@ -97,7 +96,8 @@ export function isColorDisabled(): boolean {
   }
 
   if (isNode()) {
-    const proc = globalThis.process as ProcessNamespace;
+    const proc = (globalThis as Record<string, unknown>)
+      .process as ProcessNamespace;
     return !!proc.env.NO_COLOR;
   }
 
@@ -126,7 +126,8 @@ export function isCI(): boolean {
   }
 
   if (isNode()) {
-    const proc = globalThis.process as ProcessNamespace;
+    const proc = (globalThis as Record<string, unknown>)
+      .process as ProcessNamespace;
     return !!proc.env.CI;
   }
 
@@ -164,7 +165,9 @@ export function getDenoNamespace(): DenoNamespace | null {
  * ```
  */
 export function getProcessNamespace(): ProcessNamespace | null {
-  return isNode() ? (globalThis.process as ProcessNamespace) : null;
+  return isNode()
+    ? ((globalThis as Record<string, unknown>).process as ProcessNamespace)
+    : null;
 }
 
 /**
