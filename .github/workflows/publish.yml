@@ -1,0 +1,25 @@
+name: Publish to JSR
+
+on:
+  push:
+    tags:
+      - "v*" # Trigger on version tags (e.g. v1.0.0, v0.1.0-alpha.1)
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write # Required for JSR OIDC authentication
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Setup Deno
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: lts
+
+      - name: Publish package
+        run: deno publish
