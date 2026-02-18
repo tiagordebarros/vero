@@ -1,0 +1,87 @@
+# ================================================================
+# CODEOWNERS
+# ================================================================
+# This file defines code ownership for the Vero project.
+# GitHub will automatically request reviews from the listed owners
+# when pull requests modify matching files.
+#
+# Official Maintainer:
+# https://github.com/tiagordebarros
+# ================================================================
+
+
+# ------------------------------------------------
+# 🟣 Global Ownership
+# ------------------------------------------------
+# The repository is fully owned and maintained by:
+*       @tiagordebarros
+
+
+# ------------------------------------------------
+# 📦 Core Architecture
+# ------------------------------------------------
+# Logger engine, configuration and core runtime logic
+/core/          @tiagordebarros
+
+
+# ------------------------------------------------
+# 🎨 Formatting Layer
+# ------------------------------------------------
+# ANSI formatting, layout rendering, object visualization
+/formatting/    @tiagordebarros
+
+
+# ------------------------------------------------
+# ⏱ Performance Utilities
+# ------------------------------------------------
+# Timing, benchmarking, performance visual output
+/performance/   @tiagordebarros
+
+
+# ------------------------------------------------
+# 🧰 Utilities
+# ------------------------------------------------
+# Environment detection, terminal helpers
+/utils/         @tiagordebarros
+
+
+# ------------------------------------------------
+# 📐 Types
+# ------------------------------------------------
+# Public and internal type definitions
+/types/         @tiagordebarros
+
+
+# ------------------------------------------------
+# 📚 Documentation
+# ------------------------------------------------
+# All markdown documentation files
+*.md            @tiagordebarros
+
+
+# ------------------------------------------------
+# 🔐 Security & Policies
+# ------------------------------------------------
+SECURITY.md     @tiagordebarros
+SUPPORT.md      @tiagordebarros
+CONTRIBUTING.md @tiagordebarros
+
+
+# ------------------------------------------------
+# 🧪 Tests
+# ------------------------------------------------
+# Test suites and validation files
+/tests/         @tiagordebarros
+
+
+# ------------------------------------------------
+# ⚙ Configuration Files
+# ------------------------------------------------
+deno.jsonc      @tiagordebarros
+tsconfig.json   @tiagordebarros
+package.json    @tiagordebarros
+
+
+# ================================================================
+# End of CODEOWNERS
+# ================================================================
